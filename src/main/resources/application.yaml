@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dorindb
+    username: postgres
+    password: sharp06
+    driver-class-name: org.postgresql.Driver
