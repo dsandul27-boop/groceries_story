@@ -6,11 +6,14 @@ import com.example.demo.dto.response.CategoryDTOResponse;
 import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.dto.response.ProductTypeDTOResponse;
 import com.example.demo.entities.Category;
+import com.example.demo.entities.Product;
 import com.example.demo.entities.ProductType;
 import com.example.demo.mapper.ProductTypeMapper;
 import com.example.demo.repository.ProductTypeRepository;
 import com.example.demo.service.ProductTypeService;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProductTypeServiceImpl implements ProductTypeService {
@@ -18,6 +21,8 @@ public class ProductTypeServiceImpl implements ProductTypeService {
     private final ProductTypeRepository productTypeRepository;
     private final CategoryServiceImpl categoryService;
     private final ProductTypeMapper productTypeMapper;
+
+    @Autowired
     public ProductTypeServiceImpl(ProductTypeRepository productTypeRepository, CategoryServiceImpl categoryService, ProductTypeMapper productTypeMapper) {
         this.productTypeRepository = productTypeRepository;
         this.categoryService = categoryService;
@@ -36,16 +41,21 @@ public class ProductTypeServiceImpl implements ProductTypeService {
 
     @Override
     public List<ProductTypeDTOResponse> getAll() {
-        return List.of();
+        List<ProductType> productTypeList = productTypeRepository.findAll();
+        List<ProductTypeDTOResponse> productTypeDTOResponseList = new ArrayList<>();
+        for (int i = 0; i < productTypeList.size(); i++) {
+            productTypeDTOResponseList.add(productTypeMapper.toDTO(productTypeList.get(i)));
+        }
+        return productTypeDTOResponseList;
     }
 
     @Override
     public ProductTypeDTOResponse getById(Long productTypeDTOId) {
-        return null;
+        return  productTypeMapper.toDTO(productTypeRepository.findById(productTypeDTOId).orElseThrow(() -> new RuntimeException("Product type not found")));
     }
 
     @Override
     public void delete(Long productTypeDTOId) {
-
+        productTypeRepository.deleteById(productTypeDTOId);
     }
 }
