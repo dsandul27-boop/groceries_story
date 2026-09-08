@@ -38,7 +38,7 @@ public class User {
     @Column(name = "Created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "is_active", nullable = false)
+    @Column(name = "is_active")
     private boolean isActive;
 
 }

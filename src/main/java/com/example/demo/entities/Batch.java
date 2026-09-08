@@ -29,7 +29,8 @@ public class Batch {
     private LocalDate expirationDate;
 
     @Enumerated(EnumType.STRING)
-    private Batch batch;
+    @Column(name = "B_Prod_Status", nullable = false)
+    private BatchProductStatus batchProductStatus;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

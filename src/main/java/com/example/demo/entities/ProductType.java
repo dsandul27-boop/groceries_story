@@ -15,7 +15,7 @@ public class ProductType {
     private Long id;
 
     @Column(name = "name", nullable = false, length = 100)
-    private String productType;
+    private String name;
 
     @Column(name = "description", length = 500)
     private String productDescription;
