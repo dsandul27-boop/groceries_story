@@ -10,6 +10,7 @@ public interface CategoryService {
 
     List<CategoryDTOResponse> getAll();
     CategoryDTOResponse getById (Long categoryId);
-    Category save(CategoryDTORequest categoryDTORequest);
+    CategoryDTOResponse save(CategoryDTORequest categoryDTORequest);
     void delete (Long categoryId);
+
 }

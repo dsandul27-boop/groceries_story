@@ -1,5 +1,6 @@
 package com.example.demo.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -7,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CategoryDTORequest {
 
-    private Long id;
+    @NotBlank(message = "Missing field categoryName")
     private String categoryName;
     private String description;
 }

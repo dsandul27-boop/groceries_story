@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.print.attribute.standard.MediaSize;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -33,9 +34,9 @@ public class Order {
     private Long totalPrice;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime created_at;
+    private Instant created_at;
 
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
 }

@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "products")
@@ -29,11 +29,12 @@ public class Product {
     @Column(name = "price", nullable = false)
     private BigDecimal price;
 
-    @Column(name = "active", nullable = false)
-    private boolean active;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "active_status", nullable = false)
+    private ActiveStatus activeStatus;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
 }
 

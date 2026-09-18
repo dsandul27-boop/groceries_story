@@ -8,16 +8,23 @@ import org.springframework.stereotype.Component;
 @Component
 public class VendorMapper {
 
-    public VendorDTOResponse toDTO(Vendor vendor){
+    public VendorDTOResponse toDTO(Vendor vendor) {
         VendorDTOResponse vendorDTOResponse = new VendorDTOResponse();
         vendorDTOResponse.setId(vendor.getId());
         vendorDTOResponse.setName(vendor.getName());
+        vendorDTOResponse.setStatus(vendor.getActiveStatus());
         return vendorDTOResponse;
     }
 
-    public Vendor toEntity(VendorDTORequest vendorDTORequest){
+    public Vendor toEntity(VendorDTORequest vendorDTORequest) {
         Vendor vendor = new Vendor();
         vendor.setName(vendorDTORequest.getName());
+        return vendor;
+    }
+
+    public Vendor toEntity(VendorDTOResponse vendorDTOResponse) {
+        Vendor vendor = new Vendor();
+        vendor.setName(vendorDTOResponse.getName());
         return vendor;
     }
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -25,6 +26,6 @@ public class Cart {
     private LocalDateTime createdAt;
 
     @Column(name = "update_at", nullable = false)
-    private LocalDateTime updateAt;
+    private Instant updateAt;
 
 }

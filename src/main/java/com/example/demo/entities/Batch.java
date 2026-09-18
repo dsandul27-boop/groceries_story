@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -26,14 +27,14 @@ public class Batch {
     private BigDecimal purchasePrice;
 
     @Column(name = "expiration_date", nullable = false)
-    private LocalDate expirationDate;
+    private Instant expirationDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "B_Prod_Status", nullable = false)
-    private BatchProductStatus batchProductStatus;
+    @Column(name = "active_status", nullable = false)
+    private ActiveStatus activeStatus;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)

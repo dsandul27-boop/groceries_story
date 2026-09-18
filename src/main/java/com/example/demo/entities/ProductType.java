@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "products_type")
+@Table(name = "product_types")
 @Data
 @NoArgsConstructor
 
@@ -23,5 +23,9 @@ public class ProductType {
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ActiveStatus activeStatus;
 
 }

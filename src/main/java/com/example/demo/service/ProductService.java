@@ -9,9 +9,8 @@ import java.util.List;
 
 public interface ProductService {
 
-    ProductDTOResponse save(ProductDTORequest productDTORequest, Vendor vendor, ProductType productType);
+    ProductDTOResponse save(ProductDTORequest productDTORequest);
     List<ProductDTOResponse> getAll ();
     ProductDTOResponse getById(Long productDTOId);
     void delete (Long productDTOId);
-
 }

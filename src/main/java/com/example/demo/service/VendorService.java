@@ -12,7 +12,7 @@ public interface VendorService {
 
     VendorDTOResponse getById(Long vendorDTOId);
 
-    Long save(VendorDTORequest vendorDTORequest);
+    VendorDTOResponse save(VendorDTORequest vendorDTORequest);
 
     void delete (Long vendorDTOId);
 }

@@ -1,6 +1,6 @@
 package com.example.demo.entities;
 
-public enum BatchProductStatus {
+public enum ActiveStatus {
     ACTIVE,
     INACTIVE
 }

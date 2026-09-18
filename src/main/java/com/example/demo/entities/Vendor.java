@@ -18,4 +18,8 @@ public class Vendor {
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "active_status", nullable = false)
+    private ActiveStatus activeStatus;
 }

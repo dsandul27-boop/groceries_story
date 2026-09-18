@@ -17,7 +17,11 @@ public class Category {
     @Column(name = "categoryName", nullable = false, length = 100)
     private String categoryName;
 
-    @Column(name = "description", nullable = true, length = 500)
+    @Column(name = "description", length = 500)
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "active_status", nullable = false)
+    private ActiveStatus activeStatus;
 
 }

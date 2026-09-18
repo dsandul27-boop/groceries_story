@@ -13,14 +13,23 @@ public class CategoryMapper {
         categoryDTOResponse.setId(category.getId());
         categoryDTOResponse.setCategoryName(category.getCategoryName());
         categoryDTOResponse.setDescription(category.getDescription());
+        categoryDTOResponse.setStatus(category.getActiveStatus());
         return categoryDTOResponse;
     }
 
     public Category toEntity(CategoryDTORequest categoryDTORequest){
         Category category = new Category();
-        category.setId(categoryDTORequest.getId());
         category.setCategoryName(categoryDTORequest.getCategoryName());
         category.setDescription(categoryDTORequest.getDescription());
+        return category;
+    }
+
+    public Category toEntity(CategoryDTOResponse categoryDTOResponse){
+        Category category = new Category();
+        category.setId(categoryDTOResponse.getId());
+        category.setCategoryName(categoryDTOResponse.getCategoryName());
+        category.setDescription(categoryDTOResponse.getDescription());
+        category.setActiveStatus(categoryDTOResponse.getStatus());
         return category;
     }
 }
