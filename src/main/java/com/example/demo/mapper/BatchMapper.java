@@ -16,7 +16,7 @@ public class BatchMapper {
         batchDTOResponse.setExpirationDate(batch.getExpirationDate());
         batchDTOResponse.setActiveStatus(batch.getActiveStatus());
         batchDTOResponse.setCreatedAt(batch.getCreatedAt());
-        batchDTOResponse.setProductId(batch.getId());
+        batchDTOResponse.setProductId(batch.getProduct().getId());
 
         return batchDTOResponse;
     }

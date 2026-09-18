@@ -67,9 +67,12 @@ public class VendorServiceImplTest {
     }
 
     @Test
-    void getById_shouldReturnVendorDTO_whenVendorExists() {
+    void save_shouldSaveVendorAndReturnVendorDTOResponse() {
 
         VendorDTOResponse savedVendorDTOResponse = new VendorDTOResponse();
+        savedVendorDTOResponse.setId(1L);
+        savedVendorDTOResponse.setName("Latti");
+        savedVendorDTOResponse.setStatus(ActiveStatus.ACTIVE);
 
         when(vendorMapper.toEntity(vendorDTORequest))
                 .thenReturn(vendor);
@@ -87,7 +90,7 @@ public class VendorServiceImplTest {
         assertEquals("Latti", result.getName());
         verify(vendorRepository).save(vendor);
         verify(vendorMapper).toDTO(vendor);
-        verify(vendorMapper.toEntity(vendorDTORequest));
+        verify(vendorMapper).toEntity(vendorDTORequest);
     }
 
     @Test
