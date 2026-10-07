@@ -1,12 +1,11 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.pojo.ErrorResponse;
-import com.example.demo.exception.EmailAlreadyExistException;
-import com.example.demo.exception.EntityInUseException;
-import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.exception.*;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -108,17 +107,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler(PasswordAuthentication.class)
-    public ResponseEntity<ErrorResponse> handlePasswordAuthentificationException(PasswordAuthentication passwordEx){
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCredentials(
+           BadCredentialsException exception) {
+
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
-                HttpStatus.FORBIDDEN.value(),
-                "Forbidden",
-                "You do not have permission to access this resource"
+                HttpStatus.UNAUTHORIZED.value(),
+                "Unauthorized",
+                "Wrong email or password"
         );
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
+
+
     @ExceptionHandler(EmailAlreadyExistException.class)
     public ResponseEntity<ErrorResponse> handleEmailAlreadyExists(EmailAlreadyExistException emailException) {
 

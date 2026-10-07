@@ -5,6 +5,7 @@ import com.example.demo.dto.request.UserDTORequest;
 import com.example.demo.entities.Role;
 import com.example.demo.entities.User;
 import com.example.demo.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +35,7 @@ public class AuthController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<Void> register(@RequestBody UserDTORequest userDTORequest){
+    public ResponseEntity<Void> register(@Valid @RequestBody UserDTORequest userDTORequest){
         User user = new User();
         user.setFirstName(userDTORequest.getFirstName());
         user.setLastName(userDTORequest.getLastName());
@@ -49,7 +50,7 @@ public class AuthController {
     }
 
     @PostMapping("/admin-and-staff-register")
-    public ResponseEntity<Void> masterRegister(@RequestBody UserDTORequest userDTORequest){
+    public ResponseEntity<Void> masterRegister(@Valid @RequestBody UserDTORequest userDTORequest){
         User user = new User();
         user.setFirstName(userDTORequest.getFirstName());
         user.setLastName(userDTORequest.getLastName());

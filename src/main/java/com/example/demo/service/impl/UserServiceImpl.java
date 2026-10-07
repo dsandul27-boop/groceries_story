@@ -27,6 +27,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void updateStatus(Optional<User> optionalUser) {
+        optionalUser.get().setActive(false);
+        userRepository.save(optionalUser.get());
+
+    }
+
+    @Override
     public List<UserDTOResponse> getAll() {
         List<User> list = userRepository.findAll();
         if (list.isEmpty()) {
@@ -51,10 +58,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(Long userId) {
-        if (!userRepository.existsById(userId)) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if (optionalUser.isEmpty()) {
             throw new ResourceNotFoundException("Already doesn't exist");
         }
-        addressRepository.deleteById(userId);
-        userRepository.deleteById(userId);
+        updateStatus(optionalUser);
     }
 }
