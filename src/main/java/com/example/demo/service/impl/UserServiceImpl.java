@@ -2,6 +2,7 @@ package com.example.demo.service.impl;
 
 import com.example.demo.dto.response.UserDTOResponse;
 import com.example.demo.entities.*;
+import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.AddressRepository;
@@ -27,9 +28,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateStatus(Optional<User> optionalUser) {
-        optionalUser.get().setActive(false);
-        userRepository.save(optionalUser.get());
+    public void updateStatus(User user) {
+        if (!user.isActive()) {
+            throw new IllegalStateException("User is already inactive");
+        }
+        user.setActive(false);
+        userRepository.save(user);
 
     }
 
@@ -62,6 +66,11 @@ public class UserServiceImpl implements UserService {
         if (optionalUser.isEmpty()) {
             throw new ResourceNotFoundException("Already doesn't exist");
         }
-        updateStatus(optionalUser);
+        User user = optionalUser.get();
+        if (!user.isActive()) {
+            throw new IsInactiveException("User is already inactive");
+        }
+        user.setActive(false);
+        userRepository.save(user);
     }
 }

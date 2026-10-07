@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
-    void updateStatus(Optional<User> optionalUser);
+    void updateStatus(User user);
     List<UserDTOResponse> getAll();
     UserDTOResponse getById(Long userId);
     void delete(Long userId);
