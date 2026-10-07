@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.request.CategoryDTORequest;
 import com.example.demo.dto.response.CategoryDTOResponse;
+import com.example.demo.dto.response.CategoryFilterDTOResponse;
 import com.example.demo.entities.Category;
 
 import java.util.List;
@@ -12,5 +13,6 @@ public interface CategoryService {
     CategoryDTOResponse getById (Long categoryId);
     CategoryDTOResponse save(CategoryDTORequest categoryDTORequest);
     void delete (Long categoryId);
+    List<CategoryFilterDTOResponse> getCategoryWithProductType();
 
 }

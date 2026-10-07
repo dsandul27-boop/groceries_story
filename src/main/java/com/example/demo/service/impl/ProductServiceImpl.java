@@ -2,6 +2,7 @@ package com.example.demo.service.impl;
 
 import com.example.demo.dto.request.ProductDTORequest;
 import com.example.demo.dto.response.ProductDTOResponse;
+import com.example.demo.dto.response.ProductFilterDTOResponse;
 import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Product;
 import com.example.demo.entities.ProductType;
@@ -80,7 +81,10 @@ public class ProductServiceImpl implements ProductService {
         if (optionalProduct.isEmpty()) {
             throw new ResourceNotFoundException("Product was not found");
         }
-        return productMapper.toDTO(optionalProduct.get());
+        Long productSumQuantity = batchRepository.sumQuantityByProductId(productId);
+        ProductDTOResponse productDTOResponse = productMapper.toDTO(optionalProduct.get());
+        productDTOResponse.setQuantity(productSumQuantity);
+        return productDTOResponse;
     }
 
     @Override
@@ -94,6 +98,20 @@ public class ProductServiceImpl implements ProductService {
         }
         productRepository.deleteById(productId);
     }
+
+    @Override
+    public List<ProductFilterDTOResponse> getProductFilter() {
+        List<Product> productList = productRepository.findAll();
+        if (productList.isEmpty()){
+            throw new ResourceNotFoundException("Product list is empty");
+        }
+        List<ProductFilterDTOResponse> productFilterList = new ArrayList<>();
+        for (Product product:productList){
+            productFilterList.add(productMapper.toFilterDTO(product));
+        }
+        return productFilterList;
+    }
+
 
 }
 

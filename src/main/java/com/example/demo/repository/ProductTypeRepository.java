@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.response.ProductTypeFilterDTOResponse;
 import com.example.demo.entities.ProductType;
 import org.springframework.data.jpa.repository.JpaRepository;
 

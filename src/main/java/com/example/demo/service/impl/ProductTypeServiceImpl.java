@@ -69,7 +69,7 @@ public class ProductTypeServiceImpl implements ProductTypeService {
     public ProductTypeDTOResponse getById(Long productTypeId) {
         Optional<ProductType> optionalProduct = productTypeRepository.findById(productTypeId);
         if (optionalProduct.isEmpty()) {
-            throw new ResourceNotFoundException("Product not found");
+            throw new ResourceNotFoundException("Product types not found");
         }
         return productTypeMapper.toDTO(optionalProduct.get());
     }
@@ -90,4 +90,6 @@ public class ProductTypeServiceImpl implements ProductTypeService {
     public boolean existsByCategoryId(Long categoryId) {
         return productTypeRepository.existsByCategoryId(categoryId);
     }
+
+
 }

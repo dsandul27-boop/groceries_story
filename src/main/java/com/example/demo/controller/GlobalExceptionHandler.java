@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.pojo.ErrorResponse;
+import com.example.demo.exception.EmailAlreadyExistException;
 import com.example.demo.exception.EntityInUseException;
 import com.example.demo.exception.ResourceNotFoundException;
 import org.springframework.context.MessageSourceResolvable;
@@ -13,14 +14,16 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.security.access.AccessDeniedException;
 
+import java.net.PasswordAuthentication;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ErrorResponse> handlerResourceNotFound(NoResourceFoundException ex){
+    public ResponseEntity<ErrorResponse> handlerResourceNotFound(NoResourceFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.NOT_FOUND.value(),
@@ -50,7 +53,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handlerResourceNotFound(MethodArgumentTypeMismatchException ex){
+    public ResponseEntity<ErrorResponse> handlerResourceNotFound(MethodArgumentTypeMismatchException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.BAD_REQUEST.value(),
@@ -84,7 +87,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handlerResourceNotFound(ResourceNotFoundException ex){
+    public ResponseEntity<ErrorResponse> handlerResourceNotFound(ResourceNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.NOT_FOUND.value(),
@@ -95,7 +98,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(EntityInUseException.class)
-    public ResponseEntity<ErrorResponse> entityDependenciesExist(EntityInUseException entyEx){
+    public ResponseEntity<ErrorResponse> entityDependenciesExist(EntityInUseException entyEx) {
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.CONFLICT.value(),
@@ -105,8 +108,48 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(PasswordAuthentication.class)
+    public ResponseEntity<ErrorResponse> handlePasswordAuthentificationException(PasswordAuthentication passwordEx){
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.FORBIDDEN.value(),
+                "Forbidden",
+                "You do not have permission to access this resource"
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+    @ExceptionHandler(EmailAlreadyExistException.class)
+    public ResponseEntity<ErrorResponse> handleEmailAlreadyExists(EmailAlreadyExistException emailException) {
+
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                "Email already is used",
+                emailException.getMessage()
+        );
+
+        return new ResponseEntity<>(errorResponse, status);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(
+            AccessDeniedException ex) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.FORBIDDEN.value(),
+                "Forbidden",
+                "You do not have permission to access this resource"
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex){
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
@@ -115,6 +158,4 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-
 }

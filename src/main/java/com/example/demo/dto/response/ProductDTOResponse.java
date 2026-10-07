@@ -17,5 +17,6 @@ public class ProductDTOResponse {
     private BigDecimal price;
     private ActiveStatus activeStatus;
     private Instant createdAt;
+    private Long quantity;
 
 }

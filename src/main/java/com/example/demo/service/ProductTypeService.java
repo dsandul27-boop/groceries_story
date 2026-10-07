@@ -17,4 +17,5 @@ public interface ProductTypeService {
 
     boolean existsByCategoryId(Long categoryId);
 
+
 }

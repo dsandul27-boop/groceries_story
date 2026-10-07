@@ -1,6 +1,7 @@
 package com.example.demo.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,17 +16,21 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
+    @NotNull(message = "First name can't be empty")
     @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
 
+    @NotNull(message = "Last name can't be empty")
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
 
+    @NotNull(message = "Email is mandatory")
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
+    @NotNull(message = "Password can't be empty")
     @Column(name = "password", nullable = false, length = 100)
     private String password;
 

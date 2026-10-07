@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "categories")
 @Data
@@ -23,5 +26,8 @@ public class Category {
     @Enumerated(EnumType.STRING)
     @Column(name = "active_status", nullable = false)
     private ActiveStatus activeStatus;
+
+    @OneToMany(mappedBy = "category")
+    private List<ProductType> productTypes = new ArrayList<>();
 
 }

@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,23 +25,27 @@ public class BatchController {
         this.batchService = batchService;
     }
 
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     @PostMapping("/save-batch")
     public ResponseEntity<BatchDTOResponse> save(@Valid @RequestBody BatchDTORequest batchDTORequest){
         return new ResponseEntity<>(batchService.save(batchDTORequest), HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     @GetMapping("/get-all-batch")
     public ResponseEntity<List<BatchDTOResponse>> getAll(){
         List<BatchDTOResponse> batchList = batchService.getAll();
         return new ResponseEntity<>(batchList, HttpStatus.ACCEPTED);
     }
 
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     @GetMapping("/get-batch-by-id/{batchId}")
     public ResponseEntity<BatchDTOResponse> getById (@PathVariable @Positive(message = "Id must be positive") Long batchId){
         BatchDTOResponse batchDTOResponse = batchService.getById(batchId);
         return new ResponseEntity<>(batchDTOResponse, HttpStatus.OK) ;
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     @DeleteMapping("/delete-batch-by-id/{batchId}")
     public ResponseEntity delete (@PathVariable @Positive(message = "Id must be positive") Long batchId){
         batchService.delete(batchId);

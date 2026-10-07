@@ -188,7 +188,7 @@ public class ProductServiceImplTest {
 
     @Test
     void getById_shouldReturnProductById() {
-
+        productDTOResponse.setQuantity(50L);
         when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
         when(productMapper.toDTO(savedProduct)).thenReturn(productDTOResponse);
 
@@ -196,6 +196,7 @@ public class ProductServiceImplTest {
 
         assertEquals(productId, result.getId());
         assertEquals(vendorId, result.getVendorId());
+        assertEquals(50L, result.getQuantity());
         verify(productRepository).findById(productId);
         verify(productMapper).toDTO(savedProduct);
     }

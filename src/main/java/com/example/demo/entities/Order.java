@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.print.attribute.standard.MediaSize;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 
@@ -31,10 +32,10 @@ public class Order {
     private Status status;
 
     @Column(name = "total_price", nullable = false)
-    private Long totalPrice;
+    private BigDecimal totalPrice;
 
     @Column(name = "created_at", nullable = false)
-    private Instant created_at;
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;

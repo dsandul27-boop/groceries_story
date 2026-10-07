@@ -80,4 +80,5 @@ public class BatchServiceImpl implements BatchService {
     public void delete(Long batchId) {
     batchRepository.deleteById(batchId);
     }
+
 }

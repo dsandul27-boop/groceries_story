@@ -2,14 +2,16 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.request.CategoryDTORequest;
 import com.example.demo.dto.response.CategoryDTOResponse;
+import com.example.demo.dto.response.CategoryFilterDTOResponse;
 import com.example.demo.service.impl.CategoryServiceImpl;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 
@@ -24,13 +26,13 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
-
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'ADMIN')")
     @GetMapping("/get-all-category")
     public ResponseEntity<List<CategoryDTOResponse>> getAll(){
-        List<CategoryDTOResponse> categoryDTOResponseList = categoryService.getAll();
-        return new ResponseEntity<>(categoryDTOResponseList, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(categoryService.getAll(), HttpStatus.ACCEPTED);
     }
 
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'ADMIN')")
     @GetMapping("/get-category-by-id/{id}")
     public ResponseEntity<CategoryDTOResponse> getById(
             @PathVariable
@@ -39,15 +41,24 @@ public class CategoryController {
        return new ResponseEntity<>(categoryDTOResponse, HttpStatus.ACCEPTED);
     }
 
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     @PostMapping("/save-category")
     public ResponseEntity<CategoryDTOResponse> save(@Valid @RequestBody CategoryDTORequest categoryDTORequest){
          return new ResponseEntity<>(categoryService.save(categoryDTORequest), HttpStatus.ACCEPTED);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @DeleteMapping("/delete-category/{categoryId}")
     public ResponseEntity delete(@PathVariable @Positive(message = "ID must be positive") Long categoryId){
         categoryService.delete(categoryId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'ADMIN')")
+    @GetMapping("/get-all-category-and-product-type")
+    public ResponseEntity<List<CategoryFilterDTOResponse>> getCategory(){
+        List<CategoryFilterDTOResponse> categoryFilterDTOResponseList = categoryService.getCategoryWithProductType();
+        return new ResponseEntity<>(categoryFilterDTOResponseList, HttpStatus.OK);
     }
 
 }

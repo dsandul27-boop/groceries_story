@@ -22,10 +22,14 @@ public class ProductMapperTest {
     private Product product;
     private ProductDTORequest productDTORequest;
     private Instant createdAt;
+    private VendorMapper vendorMapper;
+    private ProductTypeMapper productTypeMapper;
 
     @BeforeEach
     void setUp() {
         productMapper = new ProductMapper();
+        vendorMapper = new VendorMapper();
+        productTypeMapper = new ProductTypeMapper();
 
         Vendor vendor = new Vendor();
         vendor.setId(5L);

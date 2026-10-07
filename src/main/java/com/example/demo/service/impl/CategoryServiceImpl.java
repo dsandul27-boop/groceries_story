@@ -2,8 +2,12 @@ package com.example.demo.service.impl;
 
 import com.example.demo.dto.request.CategoryDTORequest;
 import com.example.demo.dto.response.CategoryDTOResponse;
+import com.example.demo.dto.response.CategoryFilterDTOResponse;
+import com.example.demo.dto.response.ProductDTOResponse;
+import com.example.demo.dto.response.ProductTypeDTOResponse;
 import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Category;
+import com.example.demo.entities.ProductType;
 import com.example.demo.exception.EntityInUseException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.CategoryMapper;
@@ -71,5 +75,22 @@ public class CategoryServiceImpl implements CategoryService {
             throw new EntityInUseException("Product type dependencies exist");
         }
         categoryRepository.deleteById(categoryId);
+    }
+
+    @Override
+    public List<CategoryFilterDTOResponse> getCategoryWithProductType() {
+
+        List<Category> categoryList = categoryRepository.findAll();
+
+        if (categoryList.isEmpty()) {
+            throw new ResourceNotFoundException("No categories found");
+        }
+
+        List<CategoryFilterDTOResponse> result = new ArrayList<>();
+
+        for (Category category : categoryList) {
+            result.add(categoryMapper.categoryFilterDTOResponse(category));
+        }
+        return result;
     }
 }

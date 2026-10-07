@@ -23,7 +23,7 @@ public class Cart {
     private User user;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "update_at", nullable = false)
     private Instant updateAt;

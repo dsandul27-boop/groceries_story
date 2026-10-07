@@ -2,6 +2,7 @@ package com.example.demo.mapper;
 
 import com.example.demo.dto.request.VendorDTORequest;
 import com.example.demo.dto.response.VendorDTOResponse;
+import com.example.demo.dto.response.VendorFilterDTOResponse;
 import com.example.demo.entities.Vendor;
 import org.springframework.stereotype.Component;
 
@@ -26,5 +27,13 @@ public class VendorMapper {
         Vendor vendor = new Vendor();
         vendor.setName(vendorDTOResponse.getName());
         return vendor;
+    }
+
+    public VendorFilterDTOResponse toFilerDTO(Vendor vendor){
+        VendorFilterDTOResponse vendorFilterDTOResponse = new VendorFilterDTOResponse();
+        vendorFilterDTOResponse.setId(vendor.getId());
+        vendorFilterDTOResponse.setName(vendor.getName());
+        vendorFilterDTOResponse.setActiveStatus(vendor.getActiveStatus());
+        return  vendorFilterDTOResponse;
     }
 }

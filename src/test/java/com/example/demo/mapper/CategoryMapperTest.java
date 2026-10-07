@@ -14,7 +14,7 @@ public class CategoryMapperTest {
 
     @Mock
     private CategoryMapper categoryMapper;
-
+    private ProductTypeMapper productTypeMapper;
     private Category category;
     private CategoryDTOResponse categoryDTOResponse;
     private CategoryDTORequest categoryDTORequest;

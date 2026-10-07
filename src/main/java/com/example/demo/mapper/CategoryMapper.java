@@ -2,11 +2,25 @@ package com.example.demo.mapper;
 
 import com.example.demo.dto.request.CategoryDTORequest;
 import com.example.demo.dto.response.CategoryDTOResponse;
+import com.example.demo.dto.response.CategoryFilterDTOResponse;
+import com.example.demo.dto.response.ProductTypeDTOResponse;
+import com.example.demo.dto.response.ProductTypeFilterDTOResponse;
 import com.example.demo.entities.Category;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class CategoryMapper {
+
+    private final ProductTypeMapper productTypeMapper;
+
+    @Autowired
+    public CategoryMapper(ProductTypeMapper productTypeMapper) {
+        this.productTypeMapper = productTypeMapper;
+    }
 
     public CategoryDTOResponse toDTO(Category category){
         CategoryDTOResponse categoryDTOResponse = new CategoryDTOResponse();
@@ -32,4 +46,23 @@ public class CategoryMapper {
         category.setActiveStatus(categoryDTOResponse.getStatus());
         return category;
     }
+
+    public CategoryFilterDTOResponse categoryFilterDTOResponse(Category category) {
+
+        CategoryFilterDTOResponse response = new CategoryFilterDTOResponse();
+
+        response.setId(category.getId());
+        response.setCategoryName(category.getCategoryName());
+        response.setDescription(category.getDescription());
+
+        List<ProductTypeFilterDTOResponse> productTypes = category.getProductTypes()
+                .stream()
+                .map(productTypeMapper::toFilterDTO)
+                .toList();
+
+        response.setProductTypes(productTypes);
+
+        return response;
+    }
+
 }

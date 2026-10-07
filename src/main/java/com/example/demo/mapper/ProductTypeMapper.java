@@ -2,6 +2,7 @@ package com.example.demo.mapper;
 
 import com.example.demo.dto.request.ProductTypeDTORequest;
 import com.example.demo.dto.response.ProductTypeDTOResponse;
+import com.example.demo.dto.response.ProductTypeFilterDTOResponse;
 import com.example.demo.entities.ProductType;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,6 @@ public class ProductTypeMapper {
         productTypeDTOResponse.setName(productType.getName());
         productTypeDTOResponse.setCategoryId(productType.getCategory().getId());
         productTypeDTOResponse.setDescription(productType.getProductDescription());
-        productTypeDTOResponse.setStatus(productType.getActiveStatus());
         return productTypeDTOResponse;
     }
 
@@ -33,5 +33,15 @@ public class ProductTypeMapper {
         productType.setName(productTypeDTOResponse.getName());
         productType.setProductDescription(productTypeDTOResponse.getDescription());
         return productType;
+    }
+
+    public ProductTypeFilterDTOResponse toFilterDTO(ProductType productType) {
+        ProductTypeFilterDTOResponse response = new ProductTypeFilterDTOResponse();
+
+        response.setId(productType.getId());
+        response.setName(productType.getName());
+        response.setDescription(productType.getProductDescription());
+
+        return response;
     }
 }

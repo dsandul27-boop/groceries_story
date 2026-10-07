@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.request.ProductDTORequest;
 import com.example.demo.dto.response.ProductDTOResponse;
+import com.example.demo.dto.response.ProductFilterDTOResponse;
 import com.example.demo.entities.ProductType;
 import com.example.demo.entities.Vendor;
 
@@ -13,4 +14,5 @@ public interface ProductService {
     List<ProductDTOResponse> getAll ();
     ProductDTOResponse getById(Long productDTOId);
     void delete (Long productDTOId);
+    List<ProductFilterDTOResponse> getProductFilter();
 }

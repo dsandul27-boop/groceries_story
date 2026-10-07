@@ -1,0 +1,65 @@
+package com.example.demo.controller;
+
+import com.example.demo.config.SecurityConfig;
+import com.example.demo.dto.request.UserDTORequest;
+import com.example.demo.entities.Role;
+import com.example.demo.entities.User;
+import com.example.demo.service.AuthService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/auth")
+public class AuthController {
+    private final AuthService authService;
+    private final SecurityConfig securityConfig;
+
+
+    public AuthController(AuthService authService, SecurityConfig securityConfig) {
+        this.authService = authService;
+        this.securityConfig = securityConfig;
+    }
+
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(
+            @RequestParam String email,
+            @RequestParam String password
+    ) {
+        String token = authService.login(email, password);
+
+        return ResponseEntity.ok(token);
+    }
+
+
+    @PostMapping("/register")
+    public ResponseEntity<Void> register(@RequestBody UserDTORequest userDTORequest){
+        User user = new User();
+        user.setFirstName(userDTORequest.getFirstName());
+        user.setLastName(userDTORequest.getLastName());
+        user.setEmail(userDTORequest.getEmail());
+        user.setPassword(userDTORequest.getPassword());
+        user.setPhone(userDTORequest.getPhone());
+        user.setRole(Role.CUSTOMER);
+
+        authService.register(user);
+
+        return ResponseEntity.status(201).build();
+    }
+
+    @PostMapping("/admin-and-staff-register")
+    public ResponseEntity<Void> masterRegister(@RequestBody UserDTORequest userDTORequest){
+        User user = new User();
+        user.setFirstName(userDTORequest.getFirstName());
+        user.setLastName(userDTORequest.getLastName());
+        user.setEmail(userDTORequest.getEmail());
+        user.setPassword(userDTORequest.getPassword());
+        user.setPhone(userDTORequest.getPhone());
+        user.setRole(userDTORequest.getRole());
+
+        authService.register(user);
+        return ResponseEntity.status(201).build();
+    }
+
+}
