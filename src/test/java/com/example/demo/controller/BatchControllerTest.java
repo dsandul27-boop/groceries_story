@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.request.BatchDTORequest;
 import com.example.demo.dto.response.BatchDTOResponse;
 import com.example.demo.entities.ActiveStatus;
@@ -31,6 +32,10 @@ public class BatchControllerTest {
 
     @MockitoBean
     private BatchServiceImpl batchService;
+
+    // Satisfies JwtAuthenticationFilter's dependency so the @WebMvcTest context loads.
+    @MockitoBean
+    private JwtUtil jwtUtil;
 
     BatchDTORequest batchDTORequest = new BatchDTORequest();
     BatchDTOResponse batchDTOResponse = new BatchDTOResponse();

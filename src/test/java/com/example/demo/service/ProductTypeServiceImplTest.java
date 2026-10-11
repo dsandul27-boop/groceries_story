@@ -178,7 +178,7 @@ public class ProductTypeServiceImplTest {
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                 () -> productTypeService.getById(productTypeId));
 
-        assertEquals("Product not found", exception.getMessage());
+        assertEquals("Product types not found", exception.getMessage());
         verify(productTypeRepository).findById(productTypeId);
         verifyNoInteractions(productTypeMapper);
     }

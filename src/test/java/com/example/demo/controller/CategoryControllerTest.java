@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.request.CategoryDTORequest;
 import com.example.demo.dto.request.VendorDTORequest;
 import com.example.demo.dto.response.CategoryDTOResponse;
@@ -31,6 +32,10 @@ public class CategoryControllerTest {
 
     @MockitoBean
     private CategoryServiceImpl categoryService;
+
+    // Satisfies JwtAuthenticationFilter's dependency so the @WebMvcTest context loads.
+    @MockitoBean
+    private JwtUtil jwtUtil;
 
     CategoryDTORequest categoryDTORequest = new CategoryDTORequest();
     Category category = new Category();

@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.request.ProductDTORequest;
 import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.entities.ActiveStatus;
@@ -30,6 +31,10 @@ public class ProductControllerTest {
 
     @MockitoBean
     private ProductServiceImpl productService;
+
+    // Satisfies JwtAuthenticationFilter's dependency so the @WebMvcTest context loads.
+    @MockitoBean
+    private JwtUtil jwtUtil;
 
     ProductDTORequest productDTORequest = new ProductDTORequest();
     ProductDTOResponse productDTOResponse = new ProductDTOResponse();

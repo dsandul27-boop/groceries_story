@@ -191,6 +191,7 @@ public class ProductServiceImplTest {
         productDTOResponse.setQuantity(50L);
         when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
         when(productMapper.toDTO(savedProduct)).thenReturn(productDTOResponse);
+        when(batchRepository.sumQuantityByProductId(productId)).thenReturn(50L);
 
         ProductDTOResponse result = productService.getById(productId);
 

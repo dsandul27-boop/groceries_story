@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.request.VendorDTORequest;
 import com.example.demo.dto.response.VendorDTOResponse;
 import com.example.demo.service.impl.VendorServiceImpl;
@@ -26,6 +27,10 @@ public class VendorControllerTest {
 
     @MockitoBean
     private VendorServiceImpl vendorService;
+
+    // Satisfies JwtAuthenticationFilter's dependency so the @WebMvcTest context loads.
+    @MockitoBean
+    private JwtUtil jwtUtil;
 
     @Test
     void getById_shouldReturn200() throws Exception {
