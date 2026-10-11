@@ -23,7 +23,8 @@ public class CategoryMapperTest {
     @BeforeEach
     void setUp(){
 
-        categoryMapper = new CategoryMapper();
+        productTypeMapper = new ProductTypeMapper();
+        categoryMapper = new CategoryMapper(productTypeMapper);
         category = new Category();
         category.setId(1L);
         category.setCategoryName("Dairy");

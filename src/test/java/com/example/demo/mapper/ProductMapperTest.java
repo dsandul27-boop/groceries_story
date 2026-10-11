@@ -6,6 +6,9 @@ import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Product;
 import com.example.demo.entities.ProductType;
 import com.example.demo.entities.Vendor;
+import com.example.demo.repository.ProductRepository;
+import com.example.demo.repository.ProductTypeRepository;
+import com.example.demo.repository.VendorRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +17,7 @@ import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
 
 public class ProductMapperTest {
 
@@ -27,9 +31,14 @@ public class ProductMapperTest {
 
     @BeforeEach
     void setUp() {
-        productMapper = new ProductMapper();
         vendorMapper = new VendorMapper();
         productTypeMapper = new ProductTypeMapper();
+        productMapper = new ProductMapper(
+                productTypeMapper,
+                vendorMapper,
+                mock(ProductTypeRepository.class),
+                mock(VendorRepository.class),
+                mock(ProductRepository.class));
 
         Vendor vendor = new Vendor();
         vendor.setId(5L);

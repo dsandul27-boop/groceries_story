@@ -16,6 +16,7 @@ public class ProductTypeMapper {
         productTypeDTOResponse.setName(productType.getName());
         productTypeDTOResponse.setCategoryId(productType.getCategory().getId());
         productTypeDTOResponse.setDescription(productType.getProductDescription());
+        productTypeDTOResponse.setStatus(productType.getActiveStatus());
         return productTypeDTOResponse;
     }
 

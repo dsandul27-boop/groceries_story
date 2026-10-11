@@ -12,5 +12,6 @@ public class ProductTypeDTOResponse {
     private String name;
     private String description;
     private Long categoryId;
+    private ActiveStatus status;
 
 }
