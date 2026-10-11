@@ -9,3 +9,9 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
+
+
+app:
+  jwt:
+    secret: test-only-secret-for-jwt-tests-1234567890
+    expiration-ms: 3600000

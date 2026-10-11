@@ -1,7 +1,9 @@
+
 package com.example.demo.config;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -11,12 +13,25 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
+    private final SecretKey secretKey;
+    private final long expirationMs;
 
-    private final String SECRET_KEY =
-            "my-super-secret-key-for-jwt-authentication-123456";
+    public JwtUtil(
+            @Value("${app.jwt.secret}") String secret,
+            @Value("${app.jwt.expiration-ms}") long expirationMs
+    ) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException(
+                    "JWT secret must not be blank"
+            );
+        }
 
-    private final SecretKey secretKey =
-            Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+        this.secretKey = Keys.hmacShaKeyFor(
+                secret.getBytes(StandardCharsets.UTF_8)
+        );
+
+        this.expirationMs = expirationMs;
+    }
 
     public String generateToken(String username, String role) {
 
@@ -25,7 +40,7 @@ public class JwtUtil {
                 .claim("role", role)
                 .issuedAt(new Date())
                 .expiration(
-                        new Date(System.currentTimeMillis() + 1000 * 60 * 60)
+                        new Date(System.currentTimeMillis() + expirationMs)
                 )
                 .signWith(secretKey)
                 .compact();
