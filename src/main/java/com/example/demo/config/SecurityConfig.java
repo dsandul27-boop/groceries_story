@@ -26,9 +26,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
 
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-
+        http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
@@ -37,11 +35,16 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/auth/**", "/swagger-ui/**", "/v3/**"
+                                "/auth/login",
+                                "/auth/register",
+                                "/swagger-ui/**",
+                                "/v3/**"
                         ).permitAll()
+
 
                         .anyRequest().authenticated()
                 )
+
 
                 .addFilterBefore(
                         jwtAuthenticationFilter,

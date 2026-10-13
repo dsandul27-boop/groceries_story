@@ -1,25 +1,23 @@
 package com.example.demo.controller;
 
-import com.example.demo.config.SecurityConfig;
 import com.example.demo.dto.request.UserDTORequest;
 import com.example.demo.entities.Role;
 import com.example.demo.entities.User;
 import com.example.demo.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
     private final AuthService authService;
-    private final SecurityConfig securityConfig;
 
 
-    public AuthController(AuthService authService, SecurityConfig securityConfig) {
+
+    public AuthController(AuthService authService) {
         this.authService = authService;
-        this.securityConfig = securityConfig;
+
     }
 
 
@@ -46,20 +44,6 @@ public class AuthController {
 
         authService.register(user);
 
-        return ResponseEntity.status(201).build();
-    }
-
-    @PostMapping("/admin-and-staff-register")
-    public ResponseEntity<Void> masterRegister(@Valid @RequestBody UserDTORequest userDTORequest){
-        User user = new User();
-        user.setFirstName(userDTORequest.getFirstName());
-        user.setLastName(userDTORequest.getLastName());
-        user.setEmail(userDTORequest.getEmail());
-        user.setPassword(userDTORequest.getPassword());
-        user.setPhone(userDTORequest.getPhone());
-        user.setRole(userDTORequest.getRole());
-
-        authService.register(user);
         return ResponseEntity.status(201).build();
     }
 
