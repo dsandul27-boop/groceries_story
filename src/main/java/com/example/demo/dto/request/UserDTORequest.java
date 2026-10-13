@@ -39,8 +39,9 @@ public class UserDTORequest {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
-
     private Role role;
+
     private Instant createdAt;
+
     private boolean isActive;
 }
