@@ -17,11 +17,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.example.demo.config.JwtUtil;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-@Import(SecurityConfig.class)
+
 
 @WebMvcTest(UserController.class)
+
 class UserControllerTest {
 
     @Autowired
@@ -29,6 +31,7 @@ class UserControllerTest {
 
     @MockitoBean
     private UserServiceImpl userService;
+
 
     @MockitoBean
     private AuthService authService;
@@ -43,6 +46,7 @@ class UserControllerTest {
                 .thenReturn(new UserDTOResponse());
 
         mockMvc.perform(post("/user/create")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -61,7 +65,7 @@ class UserControllerTest {
     @WithMockUser(roles = "CUSTOMER")
     void customerCannotCreateUser() throws Exception {
         mockMvc.perform(post("/user/create")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                         {

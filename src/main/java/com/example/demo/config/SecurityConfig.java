@@ -16,9 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableMethodSecurity
 @EnableWebSecurity
-@EnableMethodSecurity // Без этого @PreAuthorize работать не будет!
-
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -44,7 +43,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/user/create").hasAnyRole("ADMIN", "STAFF")
+
 
                         .anyRequest().authenticated()
                 )
