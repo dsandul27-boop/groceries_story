@@ -1,7 +1,5 @@
 package com.example.demo.controller;
 
-import com.example.demo.config.SecurityConfig;
-import com.example.demo.config.JwtAuthenticationFilter; // Не забудьте импорт фильтра
 import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.response.UserDTOResponse;
 import com.example.demo.entities.User;
@@ -9,9 +7,11 @@ import com.example.demo.service.AuthService;
 import com.example.demo.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,8 +23,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
-@Import(SecurityConfig.class)   // <-- ВОЗВРАЩАЕМ: Активирует метод-секьюрити в тесте
+@Import(UserControllerTest.MethodSecurityTestConfig.class)
 class UserControllerTest {
+
+    /**
+     * Turns on method security so the controller's @PreAuthorize is enforced in
+     * the slice. The HTTP chain is left to @WebMvcTest's default security
+     * auto-config, which integrates with @WithMockUser.
+     */
+    @TestConfiguration
+    @EnableMethodSecurity
+    static class MethodSecurityTestConfig {
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -36,10 +46,18 @@ class UserControllerTest {
     private AuthService authService;
 
     @MockitoBean
-    private JwtUtil jwtUtil;   // Нужен, так как JwtAuthenticationFilter зависит от него
+    private JwtUtil jwtUtil;
 
-    @MockitoBean
-    private JwtAuthenticationFilter jwtAuthenticationFilter; // <-- ДОБАВЬТЕ, чтобы замокать сам фильтр
+    private static final String BODY = """
+            {
+              "firstName": "Test",
+              "lastName": "User",
+              "email": "created@example.com",
+              "password": "TestPass1!",
+              "phone": "060000000",
+              "role": "STAFF"
+            }
+            """;
 
     @Test
     @WithMockUser(roles = "ADMIN")
@@ -47,18 +65,9 @@ class UserControllerTest {
         when(authService.register(any(User.class))).thenReturn(new UserDTOResponse());
 
         mockMvc.perform(post("/user/create")
-                        .with(csrf()) // Оставляем csrf
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "firstName": "Test",
-                                  "lastName": "User",
-                                  "email": "created@example.com",
-                                  "password": "TestPass1!",
-                                  "phone": "060000000",
-                                  "role": "STAFF"
-                                }
-                                """))
+                        .content(BODY))
                 .andExpect(status().isCreated());
     }
 
@@ -66,18 +75,9 @@ class UserControllerTest {
     @WithMockUser(roles = "CUSTOMER")
     void customerCannotCreateUser() throws Exception {
         mockMvc.perform(post("/user/create")
-                        .with(csrf()) // Оставляем csrf
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                        {
-                          "firstName": "Test",
-                          "lastName": "User",
-                          "email": "created@example.com",
-                          "password": "TestPass1!",
-                          "phone": "060000000",
-                          "role": "STAFF"
-                        }
-                        """))
-                .andExpect(status().isForbidden()); // Теперь вернет 403!
+                        .content(BODY))
+                .andExpect(status().isForbidden());
     }
 }
