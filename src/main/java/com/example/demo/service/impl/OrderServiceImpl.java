@@ -12,12 +12,14 @@ import com.example.demo.repository.OrderRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class OrderServiceImpl implements OrderService {
 
     private final UserRepository userRepository;
@@ -82,7 +84,7 @@ public class OrderServiceImpl implements OrderService {
         if (optionalOrder.isEmpty()) {
             throw new ResourceNotFoundException("Order doesn't exist");
         }
-        if (orderItemRepository.existsById(orderId)) {
+        if (orderItemRepository.existsByOrderId(orderId)) {
             throw new EntityInUseException("Exist order item dependencies");
         }
         if (optionalOrder.get().getStatus().equals(Status.DELIVERED) || optionalOrder.get().getStatus().equals(Status.CANCELLED)) {
