@@ -1,6 +1,5 @@
 package com.example.demo.controller;
 
-import com.example.demo.config.SecurityConfig;
 import com.example.demo.dto.request.UserDTORequest;
 import com.example.demo.entities.Role;
 import com.example.demo.entities.User;

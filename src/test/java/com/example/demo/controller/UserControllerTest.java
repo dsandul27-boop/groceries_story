@@ -1,7 +1,8 @@
-
 package com.example.demo.controller;
 
 import com.example.demo.config.SecurityConfig;
+import com.example.demo.config.JwtAuthenticationFilter; // Не забудьте импорт фильтра
+import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.response.UserDTOResponse;
 import com.example.demo.entities.User;
 import com.example.demo.service.AuthService;
@@ -14,16 +15,15 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import com.example.demo.config.JwtUtil;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 @WebMvcTest(UserController.class)
-
+@Import(SecurityConfig.class)   // <-- ВОЗВРАЩАЕМ: Активирует метод-секьюрити в тесте
 class UserControllerTest {
 
     @Autowired
@@ -32,21 +32,22 @@ class UserControllerTest {
     @MockitoBean
     private UserServiceImpl userService;
 
-
     @MockitoBean
     private AuthService authService;
+
     @MockitoBean
-    private JwtUtil jwtUtil;
+    private JwtUtil jwtUtil;   // Нужен, так как JwtAuthenticationFilter зависит от него
+
+    @MockitoBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter; // <-- ДОБАВЬТЕ, чтобы замокать сам фильтр
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void adminCanCreateUser() throws Exception {
-
-        when(authService.register(any(User.class)))
-                .thenReturn(new UserDTOResponse());
+        when(authService.register(any(User.class))).thenReturn(new UserDTOResponse());
 
         mockMvc.perform(post("/user/create")
-                        .with(csrf())
+                        .with(csrf()) // Оставляем csrf
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -65,7 +66,7 @@ class UserControllerTest {
     @WithMockUser(roles = "CUSTOMER")
     void customerCannotCreateUser() throws Exception {
         mockMvc.perform(post("/user/create")
-                        .with(csrf())
+                        .with(csrf()) // Оставляем csrf
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                         {
@@ -77,7 +78,6 @@ class UserControllerTest {
                           "role": "STAFF"
                         }
                         """))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden()); // Теперь вернет 403!
     }
-
 }

@@ -26,21 +26,21 @@ public class UserController {
         this.authService = authService;
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/get-users")
     public ResponseEntity<List<UserDTOResponse> >getAllUsers(){
         List<UserDTOResponse> userDTOResponseList = userService.getAll();
         return new ResponseEntity<>(userDTOResponseList, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/get-user-by-id")
     public ResponseEntity<UserDTOResponse> getUserById(@RequestParam @NotNull @Positive(message = "Can't be null") Long userId){
         UserDTOResponse userDTOResponse = userService.getById(userId);
         return new ResponseEntity<>(userDTOResponse, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete-user-by-id/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable @NotNull @Positive(message = "Can't be null") Long userId){
         userService.delete(userId);
