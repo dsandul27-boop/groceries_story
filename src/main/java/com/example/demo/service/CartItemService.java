@@ -14,4 +14,5 @@ public interface CartItemService {
     CartItemDTOResponse getById(Long cartItemId);
     List<CartItemDTOResponse> getAll();
     void delete(Long cartItemId);
+    CartItemDTOResponse updateQuantity(Long cartItemId, String email, CartItemDTORequest cartItemDTORequest);
 }

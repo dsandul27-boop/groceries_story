@@ -2,7 +2,6 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.request.VendorDTORequest;
 import com.example.demo.dto.response.VendorDTOResponse;
-import com.example.demo.entities.Vendor;
 import com.example.demo.service.impl.VendorServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;

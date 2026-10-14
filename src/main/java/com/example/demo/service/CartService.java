@@ -6,7 +6,7 @@ import com.example.demo.dto.response.CartDTOResponse;
 import java.util.List;
 
 public interface CartService {
-    CartDTOResponse save(CartDTORequest cartDTORequest);
+
     CartDTOResponse getById(Long cartId);
     List<CartDTOResponse> getAll();
     void delete(Long cartId, String email);

@@ -1,12 +1,9 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.request.CartDTORequest;
 import com.example.demo.dto.response.CartDTOResponse;
 import com.example.demo.entities.Cart;
-import com.example.demo.entities.CartItem;
 import com.example.demo.entities.User;
 import com.example.demo.exception.EntityInUseException;
-import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.CartMapper;
 import com.example.demo.repository.CartItemRepository;
@@ -17,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,17 +34,6 @@ public class CartServiceImpl implements CartService {
         this.cartItemRepository = cartItemRepository;
     }
 
-    @Override
-    public CartDTOResponse save(CartDTORequest cartDTORequest) {
-        Optional<User> user = userRepository.findById(cartDTORequest.getUserId());
-        if (user.isEmpty()){
-            throw new ResourceNotFoundException("User not found");
-        }
-        Cart cart = cartMapper.toEntity(cartDTORequest);
-        cart.setUser(user.get());
-        cart.setCreatedAt(Instant.now());
-        return cartMapper.toDTO(cartRepository.save(cart));
-    }
 
     @Override
     public CartDTOResponse getById(Long cartId) {
@@ -82,17 +67,17 @@ public class CartServiceImpl implements CartService {
 
         Optional<User> optionalUser = userRepository.findByEmail(email);
        if (optionalUser.isEmpty()){
-           throw new IsInactiveException("Forbidden");
+           throw new ResourceNotFoundException("Forbidden");
        }
+
+        if (!optionalCart.get().getUser().getId().equals(optionalUser.get().getId())){
+            throw new AccessDeniedException("Have not access for this operation");
+        }
 
         boolean existCart = cartItemRepository.existsByCartId(cartId);
         if (existCart){
             throw new EntityInUseException("Exist cartItem dependencies");
        }
-        if (!optionalCart.get().getUser().getId().equals(optionalUser.get().getId())){
-          throw new AccessDeniedException("Have not access for this operation");
-        }
-
         cartRepository.deleteById(cartId);
     }
 }

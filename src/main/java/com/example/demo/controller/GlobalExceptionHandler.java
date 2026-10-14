@@ -14,9 +14,6 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.security.access.AccessDeniedException;
-
-import java.net.PasswordAuthentication;
-import java.net.PortUnreachableException;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice

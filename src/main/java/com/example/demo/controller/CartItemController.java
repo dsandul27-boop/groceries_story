@@ -1,16 +1,14 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.request.CartItemDTORequest;
-import com.example.demo.dto.request.CategoryDTORequest;
 import com.example.demo.dto.response.CartItemDTOResponse;
-import com.example.demo.dto.response.CategoryDTOResponse;
-import com.example.demo.dto.response.CategoryFilterDTOResponse;
 import com.example.demo.service.CartItemService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,20 +26,26 @@ public class CartItemController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/get-all-cart-items")
     public ResponseEntity<List<CartItemDTOResponse>> getAll(){
-        return new ResponseEntity<>(cartItemService.getAll(), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(cartItemService.getAll(), HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/get-cart-item-by-id/{id}")
     public ResponseEntity<CartItemDTOResponse> getById(@PathVariable @Positive(message = "ID must be positive") Long id){
         CartItemDTOResponse cartItemDTOResponse = cartItemService.getById(id);
-        return new ResponseEntity<>(cartItemDTOResponse, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(cartItemDTOResponse, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('STAFF')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/save-cart-item")
     public ResponseEntity<CartItemDTOResponse> save(@Valid @RequestBody CartItemDTORequest cartItemDTORequest){
         return new ResponseEntity<>(cartItemService.save(cartItemDTORequest), HttpStatus.ACCEPTED);
+    }
+
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @PutMapping("/update-cart-item/{id}")
+    public ResponseEntity<CartItemDTOResponse> updateCartItem(@PathVariable @Valid Long cartItemId, Authentication authentication, @Valid @RequestBody CartItemDTORequest request){
+        return new ResponseEntity<>(cartItemService.updateQuantity(cartItemId,authentication.getName(), request) ,HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
