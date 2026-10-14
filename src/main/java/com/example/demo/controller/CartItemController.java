@@ -38,12 +38,12 @@ public class CartItemController {
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/save-cart-item")
-    public ResponseEntity<CartItemDTOResponse> save(@Valid @RequestBody CartItemDTORequest cartItemDTORequest){
-        return new ResponseEntity<>(cartItemService.save(cartItemDTORequest), HttpStatus.ACCEPTED);
+    public ResponseEntity<CartItemDTOResponse> save(@Valid @RequestBody CartItemDTORequest cartItemDTORequest, Authentication authentication){
+        return new ResponseEntity<>(cartItemService.save(cartItemDTORequest, authentication.getName()), HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
-    @PutMapping("/update-cart-item/{id}")
+    @PutMapping("/update-cart-item/{cartItemId}")
     public ResponseEntity<CartItemDTOResponse> updateCartItem(@PathVariable @Valid Long cartItemId, Authentication authentication, @Valid @RequestBody CartItemDTORequest request){
         return new ResponseEntity<>(cartItemService.updateQuantity(cartItemId,authentication.getName(), request) ,HttpStatus.OK);
     }

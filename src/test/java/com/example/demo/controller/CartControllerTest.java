@@ -63,15 +63,17 @@ class CartControllerTest {
     }
 
 
-    @Test
-    void adminCanDeleteCart() throws Exception {
-        mockMvc.perform(delete("/cart/delete-cart-by-id/1")
-                        .with(user("user").roles("ADMIN"))
-                        .with(csrf()))
-                .andExpect(status().isNoContent());
 
+
+    @Test
+    @WithMockUser(username = "user", roles = "ADMIN")
+    void adminCanDeleteCart() throws Exception {
+        mockMvc.perform(delete("/cart/delete-cart-by-id/1").with(csrf()))
+                .andExpect(status().isNoContent());
         verify(cartService).delete(1L, "user");
     }
+
+
 
 
     @Test

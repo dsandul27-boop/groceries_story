@@ -6,6 +6,7 @@ import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,6 +15,8 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.security.access.AccessDeniedException;
+
+
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
@@ -148,6 +151,14 @@ public class GlobalExceptionHandler {
         );
 
         return new ResponseEntity<>(errorResponse, status);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(
+            org.springframework.security.core.AuthenticationException ex) {
+        ErrorResponse body = new ErrorResponse(LocalDateTime.now(),
+                HttpStatus.UNAUTHORIZED.value(), "Unauthorized", "Authentication is required");
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
