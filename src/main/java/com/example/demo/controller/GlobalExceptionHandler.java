@@ -161,7 +161,7 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 HttpStatus.FORBIDDEN.value(),
                 "Forbidden",
-                "You do not have permission to access this resource"
+                ex.getMessage()
         );
 
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);

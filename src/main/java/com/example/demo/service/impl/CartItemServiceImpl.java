@@ -57,8 +57,7 @@ public class CartItemServiceImpl implements CartItemService {
         if (optionalCartItem.isEmpty()){
             throw new ResourceNotFoundException("Cart item not found");
         }
-        CartItemDTOResponse cartItemDTOResponse = cartItemMapper.toDTO(optionalCartItem.get());
-        return cartItemDTOResponse;
+        return cartItemMapper.toDTO(optionalCartItem.get());
     }
 
     @Override
@@ -78,7 +77,7 @@ public class CartItemServiceImpl implements CartItemService {
     public void delete(Long cartItemId) {
         Optional<CartItem> optionalCartItem = cartItemRepository.findById(cartItemId);
         if (optionalCartItem.isEmpty()){
-            throw new ResourceNotFoundException("Cart already doesn't exist");
+            throw new ResourceNotFoundException("Cart item already doesn't exist");
         }
         cartItemRepository.deleteById(cartItemId);
     }
