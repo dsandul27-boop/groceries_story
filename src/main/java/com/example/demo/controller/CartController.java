@@ -40,8 +40,8 @@ public class CartController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete-cart-by-id/{cartId}")
-    public ResponseEntity<Void> delete(@PathVariable @Positive Long cartId, Authentication authentication){
-        cartService.delete(cartId, authentication.getName());
+    public ResponseEntity<Void> delete(@PathVariable @Positive Long cartId){
+        cartService.delete(cartId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

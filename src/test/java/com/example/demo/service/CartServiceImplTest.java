@@ -94,7 +94,7 @@ class CartServiceImplTest {
                 .thenReturn(false);
 
         // Act
-        cartService.delete(cartId, email);
+        cartService.delete(cartId);
 
         // Assert
         verify(cartRepository).deleteById(cartId);

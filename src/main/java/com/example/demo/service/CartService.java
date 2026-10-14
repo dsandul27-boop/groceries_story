@@ -9,5 +9,5 @@ public interface CartService {
 
     CartDTOResponse getById(Long cartId);
     List<CartDTOResponse> getAll();
-    void delete(Long cartId, String email);
+    void delete(Long cartId);
 }

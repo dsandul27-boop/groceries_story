@@ -27,7 +27,7 @@ public class CartServiceImpl implements CartService {
     private CartItemRepository cartItemRepository;
 
     @Autowired
-    public CartServiceImpl (CartMapper cartMapper, CartRepository cartRepository, UserRepository userRepository, CartItemRepository cartItemRepository){
+    public CartServiceImpl(CartMapper cartMapper, CartRepository cartRepository, UserRepository userRepository, CartItemRepository cartItemRepository) {
         this.cartMapper = cartMapper;
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
@@ -38,7 +38,7 @@ public class CartServiceImpl implements CartService {
     @Override
     public CartDTOResponse getById(Long cartId) {
         Optional<Cart> optionalCart = cartRepository.findById(cartId);
-        if (optionalCart.isEmpty()){
+        if (optionalCart.isEmpty()) {
             throw new ResourceNotFoundException("Cart was not found");
         }
         return cartMapper.toDTO(optionalCart.get());
@@ -48,36 +48,27 @@ public class CartServiceImpl implements CartService {
     public List<CartDTOResponse> getAll() {
         List<Cart> cartList = cartRepository.findAll();
         List<CartDTOResponse> cartDTOResponseList = new ArrayList<>();
-        if (cartList.isEmpty()){
+        if (cartList.isEmpty()) {
             throw new ResourceNotFoundException("No one cart was found");
         }
-        for (Cart cart : cartList){
+        for (Cart cart : cartList) {
             cartDTOResponseList.add(cartMapper.toDTO(cart));
         }
         return cartDTOResponseList;
     }
 
     @Override
-    public void delete(Long cartId, String email) {
+    public void delete(Long cartId) {
 
         Optional<Cart> optionalCart = cartRepository.findById(cartId);
-        if (optionalCart.isEmpty()){
+        if (optionalCart.isEmpty()) {
             throw new ResourceNotFoundException("Cart already doesn't exist");
         }
 
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-       if (optionalUser.isEmpty()){
-           throw new ResourceNotFoundException("Forbidden");
-       }
-
-        if (!optionalCart.get().getUser().getId().equals(optionalUser.get().getId())){
-            throw new AccessDeniedException("Have not access for this operation");
-        }
-
         boolean existCart = cartItemRepository.existsByCartId(cartId);
-        if (existCart){
+        if (existCart) {
             throw new EntityInUseException("Exist cartItem dependencies");
-       }
+        }
         cartRepository.deleteById(cartId);
     }
 }

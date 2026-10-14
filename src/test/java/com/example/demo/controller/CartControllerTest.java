@@ -59,21 +59,19 @@ class CartControllerTest {
                         .with(csrf()))
                 .andExpect(status().isForbidden());
 
-        verify(cartService, never()).delete(anyLong(), anyString());
+        verify(cartService, never()).delete(anyLong());
     }
 
 
 
 
     @Test
-    @WithMockUser(username = "user", roles = "ADMIN")
+    @WithMockUser(roles = "ADMIN")
     void adminCanDeleteCart() throws Exception {
         mockMvc.perform(delete("/cart/delete-cart-by-id/1").with(csrf()))
                 .andExpect(status().isNoContent());
-        verify(cartService).delete(1L, "user");
+        verify(cartService).delete(1L);
     }
-
-
 
 
     @Test
