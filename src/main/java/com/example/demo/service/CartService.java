@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface CartService {
 
-    CartDTOResponse getById(Long cartId);
+    CartDTOResponse getById(Long cartId, String callerEmail);
     List<CartDTOResponse> getAll();
     void delete(Long cartId);
 }

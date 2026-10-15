@@ -13,7 +13,7 @@ public interface CartItemService {
 
     CartItemDTOResponse save(CartItemDTORequest cartItemDTORequest, String name);
     CartItemDTOResponse getById(Long cartItemId);
-    List<CartItemDTOResponse> getAll();
+    List<CartItemDTOResponse> getAll(String authUser);
     void delete(Long cartItemId);
     CartItemDTOResponse updateQuantity(Long cartItemId, String email, CartItemDTORequest cartItemDTORequest);
 }

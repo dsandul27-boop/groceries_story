@@ -13,16 +13,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.Optional;
 
-import static java.nio.file.Files.delete;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 class CartServiceImplTest {
@@ -71,34 +68,37 @@ class CartServiceImplTest {
 
     @Test
     void delete_deletesCartWithCorrectId() {
-        // Arrange
         Long cartId = 10L;
-        Long userId = 5L;
-        String email = "customer@example.com";
+        when(cartRepository.findById(cartId)).thenReturn(Optional.of(mock(Cart.class)));
+        when(cartItemRepository.existsByCartId(cartId)).thenReturn(false);
 
-        Cart cart = mock(Cart.class);
-        User cartOwner = mock(User.class);
-        User authenticatedUser = mock(User.class);
-
-        when(cartRepository.findById(cartId))
-                .thenReturn(Optional.of(cart));
-
-        when(userRepository.findByEmail(email))
-                .thenReturn(Optional.of(authenticatedUser));
-
-        when(cart.getUser()).thenReturn(cartOwner);
-        when(cartOwner.getId()).thenReturn(userId);
-        when(authenticatedUser.getId()).thenReturn(userId);
-
-        when(cartItemRepository.existsByCartId(cartId))
-                .thenReturn(false);
-
-        // Act
         cartService.delete(cartId);
 
-        // Assert
         verify(cartRepository).deleteById(cartId);
-        verify(cartRepository, never()).deleteById(20L);
+    }
+
+    @Test
+    void getById_foreignCart_throwsAccessDenied() {
+        Cart cart = mock(Cart.class); User owner = mock(User.class); User caller = mock(User.class);
+        when(cartRepository.findById(1L)).thenReturn(Optional.of(cart));
+        when(userRepository.findByEmail("alice@x.com")).thenReturn(Optional.of(caller));
+        when(cart.getUser()).thenReturn(owner);
+        when(owner.getId()).thenReturn(2L);
+        when(caller.getId()).thenReturn(1L);
+
+        assertThrows(AccessDeniedException.class, () -> cartService.getById(1L, "alice@x.com"));
+    }
+
+    @Test
+    void getById_ownCart_returnsDto() {
+        Cart cart = mock(Cart.class); User user = mock(User.class); CartDTOResponse dto = mock(CartDTOResponse.class);
+        when(cartRepository.findById(1L)).thenReturn(Optional.of(cart));
+        when(userRepository.findByEmail("alice@x.com")).thenReturn(Optional.of(user));
+        when(cart.getUser()).thenReturn(user);
+        when(user.getId()).thenReturn(1L);
+        when(cartMapper.toDTO(cart)).thenReturn(dto);
+
+        assertSame(dto, cartService.getById(1L, "alice@x.com"));
     }
 
 }

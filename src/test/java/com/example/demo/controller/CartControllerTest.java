@@ -1,15 +1,16 @@
 
 package com.example.demo.controller;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.response.CartDTOResponse;
 import com.example.demo.service.impl.CartServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -43,17 +44,18 @@ class CartControllerTest {
     @Test
     @WithMockUser(roles = "CUSTOMER")
     void customerCanReadCart() throws Exception {
-        when(cartService.getById(1L))
+        String email = "user";
+        when(cartService.getById(1L, email))
                 .thenReturn(new CartDTOResponse());
 
         mockMvc.perform(get("/cart/get-cart-by-id/1"))
                 .andExpect(status().isOk());
 
-        verify(cartService).getById(1L);
+        verify(cartService).getById(1L, email);
     }
 
     @Test
-    @WithMockUser(roles = "CUSTOMER")
+    @WithMockUser(username = "user",roles = "CUSTOMER")
     void customerCannotDeleteCart() throws Exception {
         mockMvc.perform(delete("/cart/delete-cart-by-id/1")
                         .with(csrf()))
@@ -88,4 +90,17 @@ class CartControllerTest {
 
         verifyNoInteractions(cartService);
     }
+
+    @Test
+    @WithMockUser(username = "alice@x.com", roles = "CUSTOMER")
+    void foreignCart_403() throws Exception {
+        when(cartService.getById(99L, "alice@x.com"))
+                .thenThrow(new AccessDeniedException("nope"));
+
+        mockMvc.perform(get("/cart/get-cart-by-id/99"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+
 }

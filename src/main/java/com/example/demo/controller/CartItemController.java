@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,7 +26,8 @@ public class CartItemController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/get-all-cart-items")
     public ResponseEntity<List<CartItemDTOResponse>> getAll(){
-        return new ResponseEntity<>(cartItemService.getAll(), HttpStatus.OK);
+        String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        return new ResponseEntity<>(cartItemService.getAll(callerEmail), HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -38,14 +39,16 @@ public class CartItemController {
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/save-cart-item")
-    public ResponseEntity<CartItemDTOResponse> save(@Valid @RequestBody CartItemDTORequest cartItemDTORequest, Authentication authentication){
-        return new ResponseEntity<>(cartItemService.save(cartItemDTORequest, authentication.getName()), HttpStatus.CREATED);
+    public ResponseEntity<CartItemDTOResponse> save(@Valid @RequestBody CartItemDTORequest cartItemDTORequest){
+        String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        return new ResponseEntity<>(cartItemService.save(cartItemDTORequest, callerEmail), HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
-    @PutMapping("/update-cart-item/{cartItemId}")
-    public ResponseEntity<CartItemDTOResponse> updateCartItem(@PathVariable @Valid Long cartItemId, Authentication authentication, @Valid @RequestBody CartItemDTORequest request){
-        return new ResponseEntity<>(cartItemService.updateQuantity(cartItemId,authentication.getName(), request) ,HttpStatus.OK);
+    @PatchMapping("/update-cart-item/{cartItemId}")
+    public ResponseEntity<CartItemDTOResponse> updateCartItem(@PathVariable @Positive(message = "Should be positive") Long cartItemId, @Valid @RequestBody CartItemDTORequest request){
+        String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        return new ResponseEntity<>(cartItemService.updateQuantity(cartItemId,callerEmail, request) ,HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")

@@ -36,12 +36,15 @@ public class CartServiceImpl implements CartService {
 
 
     @Override
-    public CartDTOResponse getById(Long cartId) {
-        Optional<Cart> optionalCart = cartRepository.findById(cartId);
-        if (optionalCart.isEmpty()) {
-            throw new ResourceNotFoundException("Cart was not found");
+    public CartDTOResponse getById(Long cartId, String callerEmail) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart was not found"));
+        User caller = userRepository.findByEmail(callerEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (!cart.getUser().getId().equals(caller.getId())) {
+            throw new AccessDeniedException("You cannot view another user's cart");
         }
-        return cartMapper.toDTO(optionalCart.get());
+        return cartMapper.toDTO(cart);
     }
 
     @Override
