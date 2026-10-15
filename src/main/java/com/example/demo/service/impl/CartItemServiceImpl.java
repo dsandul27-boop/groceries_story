@@ -77,12 +77,9 @@ public class CartItemServiceImpl implements CartItemService {
 
 
     @Override
-    public CartItemDTOResponse getById(Long cartItemId) {
-        Optional<CartItem> optionalCartItem = cartItemRepository.findById(cartItemId);
-        if (optionalCartItem.isEmpty()) {
-            throw new ResourceNotFoundException("Cart item not found");
-        }
-        return cartItemMapper.toDTO(optionalCartItem.get());
+    public CartItemDTOResponse getById(Long cartItemId, String authUser) {
+        CartItem cartItem = getCartItemForUser(cartItemId,authUser);
+        return cartItemMapper.toDTO(cartItem);
     }
 
     @Override
@@ -109,38 +106,39 @@ public class CartItemServiceImpl implements CartItemService {
     }
 
     @Override
-    public void delete(Long cartItemId) {
-        Optional<CartItem> optionalCartItem = cartItemRepository.findById(cartItemId);
-        if (optionalCartItem.isEmpty()) {
-            throw new ResourceNotFoundException("Cart item already doesn't exist");
-        }
-        cartItemRepository.deleteById(cartItemId);
+    public void delete(Long cartItemId, String authUser) {
+       CartItem cartItem = getCartItemForUser(cartItemId,authUser);
+        cartItemRepository.deleteById(cartItem.getId());
     }
 
     @Override
     public CartItemDTOResponse updateQuantity(Long cartItemId, String email, CartItemDTORequest cartItemDTORequest) {
-        Optional<CartItem> optionalCartItem = cartItemRepository.findById(cartItemId);
-        if (optionalCartItem.isEmpty()) {
-            throw new ResourceNotFoundException("Cart item was not found");
-        }
 
-        Cart cart = optionalCartItem.get().getCart();
-
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-        if (optionalUser.isEmpty()) {
-            throw new ResourceNotFoundException("User not found");
-        }
-
-        if (!cart.getUser().getId().equals(optionalUser.get().getId())) {
-            throw new AccessDeniedException(optionalUser.get().getFirstName() + " " + optionalUser.get().getLastName() + ", you cannot update another user's cart");
-        }
-
-        CartItem cartItem = optionalCartItem.get();
+        CartItem cartItem = getCartItemForUser(cartItemId, email);
         cartItem.setQuantity(cartItemDTORequest.getQuantity());
-
 
         return cartItemMapper.toDTO(cartItemRepository.save(cartItem));
     }
 
+    private CartItem getCartItemForUser(Long cartItemId, String authUser) {
+        User caller = userRepository.findByEmail(authUser).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Cart cart = cartRepository.findCartByUserEmail(caller.getEmail());
+
+        if (cart == null) {
+            throw new ResourceNotFoundException("Cart was not found");
+        }
+
+        Optional<CartItem> optionalCartItem = cartItemRepository.findById(cartItemId);
+        if (optionalCartItem.isEmpty()) {
+            throw new ResourceNotFoundException("Cart item not found");
+        }
+
+        CartItem cartItem = optionalCartItem.get();
+
+        if (!cartItem.getCart().getId().equals(cart.getId())) {
+            throw new AccessDeniedException("You cannot view another user's cart items");
+        }
+        return cartItem;
+    }
 
 }

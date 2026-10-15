@@ -4,7 +4,6 @@ package com.example.demo.controller;
 import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.response.CartDTOResponse;
 import com.example.demo.service.impl.CartServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -100,7 +99,5 @@ class CartControllerTest {
         mockMvc.perform(get("/cart/get-cart-by-id/99"))
                 .andExpect(status().isForbidden());
     }
-
-    @Test
 
 }

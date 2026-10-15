@@ -8,6 +8,6 @@ import java.util.List;
 public interface CartService {
 
     CartDTOResponse getById(Long cartId, String callerEmail);
-    List<CartDTOResponse> getAll();
+    List<CartDTOResponse> getAll(String authUser);
     void delete(Long cartId);
 }

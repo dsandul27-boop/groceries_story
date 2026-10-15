@@ -33,7 +33,8 @@ public class CartItemController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/get-cart-item-by-id/{id}")
     public ResponseEntity<CartItemDTOResponse> getById(@PathVariable @Positive(message = "ID must be positive") Long id){
-        CartItemDTOResponse cartItemDTOResponse = cartItemService.getById(id);
+        String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        CartItemDTOResponse cartItemDTOResponse = cartItemService.getById(id, callerEmail);
         return new ResponseEntity<>(cartItemDTOResponse, HttpStatus.OK);
     }
 
@@ -54,7 +55,8 @@ public class CartItemController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @DeleteMapping("/delete-cart-item/{cartItemId}")
     public ResponseEntity delete(@PathVariable @Positive(message = "ID must be positive") Long cartItemId){
-        cartItemService.delete(cartItemId);
+        String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        cartItemService.delete(cartItemId, callerEmail);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

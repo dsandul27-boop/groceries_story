@@ -2,11 +2,9 @@ package com.example.demo.controller;
 
 import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.request.CategoryDTORequest;
-import com.example.demo.dto.request.VendorDTORequest;
 import com.example.demo.dto.response.CategoryDTOResponse;
 import com.example.demo.entities.Category;
 import com.example.demo.service.impl.CategoryServiceImpl;
-import com.example.demo.service.impl.VendorServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

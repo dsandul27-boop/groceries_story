@@ -48,7 +48,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public List<CartDTOResponse> getAll() {
+    public List<CartDTOResponse> getAll(String authUser) {
         List<Cart> cartList = cartRepository.findAll();
         List<CartDTOResponse> cartDTOResponseList = new ArrayList<>();
         if (cartList.isEmpty()) {

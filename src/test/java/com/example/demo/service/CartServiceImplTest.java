@@ -41,7 +41,8 @@ class CartServiceImplTest {
 
     @Test
     void getAll_returnsCartDTOList() {
-        // Arrange
+
+        String email = "user";
         Cart cart1 = mock(Cart.class);
         Cart cart2 = mock(Cart.class);
 
@@ -54,10 +55,8 @@ class CartServiceImplTest {
         when(cartMapper.toDTO(cart1)).thenReturn(dto1);
         when(cartMapper.toDTO(cart2)).thenReturn(dto2);
 
-        // Act
-        List<CartDTOResponse> result = cartService.getAll();
+        List<CartDTOResponse> result = cartService.getAll(email);
 
-        // Assert
         assertEquals(2, result.size());
         assertEquals(List.of(dto1, dto2), result);
 

@@ -26,7 +26,8 @@ public class CartController {
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     @GetMapping("/get-all-carts")
     public ResponseEntity<List<CartDTOResponse>> getAll(){
-        List<CartDTOResponse> cartList = cartService.getAll();
+        String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        List<CartDTOResponse> cartList = cartService.getAll(callerEmail);
         return new ResponseEntity<>(cartList, HttpStatus.OK);
     }
 
