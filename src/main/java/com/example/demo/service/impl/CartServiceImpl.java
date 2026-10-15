@@ -49,14 +49,20 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public List<CartDTOResponse> getAll(String authUser) {
-        List<Cart> cartList = cartRepository.findAll();
+
+        User caller = userRepository.findByEmail(authUser)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found"));
+
+        Cart cart = cartRepository.findCartByUserEmail(caller.getEmail());
+
+        if (cart == null) {
+            throw new ResourceNotFoundException("Cart was not found");
+        }
+
         List<CartDTOResponse> cartDTOResponseList = new ArrayList<>();
-        if (cartList.isEmpty()) {
-            throw new ResourceNotFoundException("No one cart was found");
-        }
-        for (Cart cart : cartList) {
-            cartDTOResponseList.add(cartMapper.toDTO(cart));
-        }
+        cartDTOResponseList.add(cartMapper.toDTO(cart));
+
         return cartDTOResponseList;
     }
 

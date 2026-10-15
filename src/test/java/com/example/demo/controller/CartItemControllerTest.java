@@ -18,6 +18,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,23 +43,25 @@ public class CartItemControllerTest {
     @MockitoBean
     private JwtUtil jwtUtil;
 
-
-    // --- ENCOIDPOINT: GET ALL ---
-
     @Test
     @WithMockUser(username = "alice@x.com", roles = "CUSTOMER")
-    void getAll_CustomerAuthorized_Returns200AndForwardsEmail() throws Exception {
-        mockMvc.perform(get("/cart-item/get-all-cart-items"))
+    void getById_CustomerAuthorized_Returns200AndForwardsEmail()
+            throws Exception {
+
+        mockMvc.perform(get("/cart-item/get-cart-item-by-id/100"))
                 .andExpect(status().isOk());
 
-        verify(cartItemService).getAll("alice@x.com");
+        verify(cartItemService).getById(100L, "alice@x.com");
     }
 
     @Test
     @WithMockUser(username = "staff@x.com", roles = "STAFF")
-    void getAll_StaffForbidden_Returns403() throws Exception {
-        mockMvc.perform(get("/cart-item/get-all-cart-items"))
+    void getById_StaffForbidden_Returns403() throws Exception {
+
+        mockMvc.perform(get("/cart-item/get-cart-item-by-id/100"))
                 .andExpect(status().isForbidden());
+
+        verifyNoInteractions(cartItemService);
     }
 
     @Test
@@ -66,8 +69,6 @@ public class CartItemControllerTest {
         mockMvc.perform(get("/cart-item/get-all-cart-items"))
                 .andExpect(status().isUnauthorized());
     }
-
-    // --- ENDPOINT: SAVE ---
 
     @Test
     @WithMockUser(username = "alice@x.com", roles = "CUSTOMER")
@@ -100,24 +101,21 @@ public class CartItemControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+
     @Test
     void save_Anonymous_Returns401() throws Exception {
-        var result = mockMvc.perform(
-                        post("/cart-item/save-cart-item")
-                                .with(csrf()))
-                .andReturn();
-
-        System.out.println("HTTP STATUS: "
-                + result.getResponse().getStatus());
-
-        System.out.println("RESPONSE BODY: "
-                + result.getResponse().getContentAsString());
-
-        System.out.println("RESOLVED EXCEPTION: "
-                + result.getResolvedException());
+        mockMvc.perform(post("/cart-item/save-cart-item")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "productId": 1,
+                                "quantity": 2
+                            }
+                            """))
+                .andExpect(status().isUnauthorized());
     }
 
-    // --- ENDPOINT: UPDATE QUANTITY ---
 
     @Test
     @WithMockUser(username = "alice@x.com", roles = "CUSTOMER")
@@ -169,8 +167,6 @@ public class CartItemControllerTest {
                                         + result.getResponse().getStatus()
                         ));
     }
-
-    // --- ENDPOINT: DELETE ---
 
     @Test
     @WithMockUser(username = "alice@x.com", roles = "CUSTOMER")

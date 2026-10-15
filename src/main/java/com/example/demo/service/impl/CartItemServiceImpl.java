@@ -15,7 +15,6 @@ import com.example.demo.repository.UserRepository;
 import com.example.demo.service.CartItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;

@@ -75,8 +75,6 @@ public class CartItemServiceImplTest {
         response.setId(100L);
     }
 
-    // --- TESTE PENTRU SAVE ---
-
     @Test
     void save_ExistingCartFound_ItemAdded() {
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
@@ -124,8 +122,6 @@ public class CartItemServiceImplTest {
         assertThrows(ResourceNotFoundException.class, () -> cartItemService.save(request, email));
     }
 
-    // --- TESTE PENTRU UPDATE QUANTITY ---
-
     @Test
     void updateQuantity_Owner_Success() {
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
@@ -165,8 +161,6 @@ public class CartItemServiceImplTest {
 
         assertThrows(ResourceNotFoundException.class, () -> cartItemService.updateQuantity(100L, email, request));
     }
-
-    // --- TESTE PENTRU DELETE ---
 
     @Test
     void delete_Found_DeletesById() {
