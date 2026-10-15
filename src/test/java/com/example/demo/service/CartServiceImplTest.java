@@ -40,29 +40,34 @@ class CartServiceImplTest {
     private CartServiceImpl cartService;
 
     @Test
-    void getAll_returnsCartDTOList() {
+    void getAll_returnsCallerCartDTOList() {
+        String email = "user@example.com";
 
-        String email = "user";
-        Cart cart1 = mock(Cart.class);
-        Cart cart2 = mock(Cart.class);
+        User caller = mock(User.class);
+        Cart cart = mock(Cart.class);
+        CartDTOResponse dto = mock(CartDTOResponse.class);
 
-        CartDTOResponse dto1 = mock(CartDTOResponse.class);
-        CartDTOResponse dto2 = mock(CartDTOResponse.class);
+        when(userRepository.findByEmail(email))
+                .thenReturn(Optional.of(caller));
 
-        when(cartRepository.findAll())
-                .thenReturn(List.of(cart1, cart2));
+        when(caller.getEmail()).thenReturn(email);
 
-        when(cartMapper.toDTO(cart1)).thenReturn(dto1);
-        when(cartMapper.toDTO(cart2)).thenReturn(dto2);
+        when(cartRepository.findCartByUserEmail(email))
+                .thenReturn(cart);
+
+        when(cartMapper.toDTO(cart))
+                .thenReturn(dto);
 
         List<CartDTOResponse> result = cartService.getAll(email);
 
-        assertEquals(2, result.size());
-        assertEquals(List.of(dto1, dto2), result);
+        assertEquals(1, result.size());
+        assertEquals(dto, result.get(0));
 
-        verify(cartRepository).findAll();
-        verify(cartMapper).toDTO(cart1);
-        verify(cartMapper).toDTO(cart2);
+        verify(userRepository).findByEmail(email);
+        verify(cartRepository).findCartByUserEmail(email);
+        verify(cartMapper).toDTO(cart);
+
+        verify(cartRepository, never()).findAll();
     }
 
     @Test
