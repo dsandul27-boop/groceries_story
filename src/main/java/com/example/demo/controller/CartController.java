@@ -2,7 +2,6 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.response.CartDTOResponse;
 import com.example.demo.service.impl.CartServiceImpl;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
