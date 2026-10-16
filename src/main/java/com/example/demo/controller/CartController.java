@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.response.CartDTOResponse;
 import com.example.demo.service.impl.CartServiceImpl;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,14 @@ public class CartController {
     public ResponseEntity<CartDTOResponse> getById(
             @PathVariable @Positive(message = "Can't be null or negative") Long cartId) {
         String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        return new ResponseEntity<>(cartService.getById(cartId, callerEmail), HttpStatus.OK);
+        return new ResponseEntity<>(cartService.getById(cartId), HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/get-by-user-email")
+    public ResponseEntity<CartDTOResponse> getByEmail(@Valid @RequestParam String email){
+        String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        return new ResponseEntity<>(cartService.getByEmail( callerEmail), HttpStatus.OK);
     }
 
 

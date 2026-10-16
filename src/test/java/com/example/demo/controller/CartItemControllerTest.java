@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CartItemController.class)
-@Import(CartItemControllerTest.MethodSecurityTestConfig.class)
+@Import(CartControllerTest.MethodSecurityTestConfig.class)
 public class CartItemControllerTest {
 
     @TestConfiguration
@@ -189,4 +189,21 @@ public class CartItemControllerTest {
         mockMvc.perform(delete("/cart-item/delete-cart-item/100").with(csrf()))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    @WithMockUser(username = "alice@x.com", roles = "CUSTOMER")
+    void getAll_CustomerAuthorized_Returns200AndForwardsEmail() throws Exception {
+        mockMvc.perform(get("/cart-item/get-all-cart-items"))
+                .andExpect(status().isOk());
+        verify(cartItemService).getAll("alice@x.com");
+    }
+
+    @Test
+    @WithMockUser(username = "staff@x.com", roles = "STAFF")
+    void getAll_StaffForbidden_Returns403() throws Exception {
+        mockMvc.perform(get("/cart-item/get-all-cart-items"))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(cartItemService);
+    }
+
 }

@@ -90,9 +90,6 @@ public class CartItemServiceImpl implements CartItemService {
             throw new ResourceNotFoundException("Cart was not found");
         }
 
-        if (!cart.getUser().getId().equals(caller.getId())) {
-            throw new AccessDeniedException("You cannot view another user's cart items");
-        }
         List<CartItem> cartItemList = cartItemRepository.findAllByCartId(cart.getId());
         List<CartItemDTOResponse> cartItemDTOResponseList = new ArrayList<>();
         if (cartItemList.isEmpty()) {

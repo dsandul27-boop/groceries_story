@@ -36,32 +36,23 @@ public class CartServiceImpl implements CartService {
 
 
     @Override
-    public CartDTOResponse getById(Long cartId, String callerEmail) {
+    public CartDTOResponse getById(Long cartId) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart was not found"));
-        User caller = userRepository.findByEmail(callerEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if (!cart.getUser().getId().equals(caller.getId())) {
-            throw new AccessDeniedException("You cannot view another user's cart");
-        }
+
         return cartMapper.toDTO(cart);
     }
 
     @Override
     public List<CartDTOResponse> getAll(String authUser) {
-
-        User caller = userRepository.findByEmail(authUser)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("User not found"));
-
-        Cart cart = cartRepository.findCartByUserEmail(caller.getEmail());
-
-        if (cart == null) {
-            throw new ResourceNotFoundException("Cart was not found");
-        }
-
         List<CartDTOResponse> cartDTOResponseList = new ArrayList<>();
-        cartDTOResponseList.add(cartMapper.toDTO(cart));
+        List<Cart> cartList = cartRepository.findAll();
+        if (cartList.isEmpty()){
+            throw new ResourceNotFoundException("Carts were not found");
+        }
+        for (Cart cart : cartList){
+            cartDTOResponseList.add(cartMapper.toDTO(cart));
+        }
 
         return cartDTOResponseList;
     }
@@ -79,5 +70,18 @@ public class CartServiceImpl implements CartService {
             throw new EntityInUseException("Exist cartItem dependencies");
         }
         cartRepository.deleteById(cartId);
+    }
+
+    @Override
+    public CartDTOResponse getByEmail(String email) {
+        User caller = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found"));
+
+        Cart cart = cartRepository.findCartByUserEmail(caller.getEmail());
+        if (cart == null) {
+            throw new ResourceNotFoundException("Cart was not found");
+        }
+        return cartMapper.toDTO(cart);
     }
 }
