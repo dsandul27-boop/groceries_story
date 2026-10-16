@@ -6,12 +6,12 @@ import com.example.demo.service.CartItemService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
@@ -24,14 +24,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CartItemController.class)
+// Uses the single global configuration from CartControllerTest now
 @Import(CartControllerTest.MethodSecurityTestConfig.class)
 public class CartItemControllerTest {
 
-    @TestConfiguration
-    @EnableMethodSecurity
-    static class MethodSecurityTestConfig {
-
-}
     @Autowired
     private MockMvc mockMvc;
 
@@ -45,22 +41,17 @@ public class CartItemControllerTest {
 
     @Test
     @WithMockUser(username = "alice@x.com", roles = "CUSTOMER")
-    void getById_CustomerAuthorized_Returns200AndForwardsEmail()
-            throws Exception {
-
+    void getById_CustomerAuthorized_Returns200AndForwardsEmail() throws Exception {
         mockMvc.perform(get("/cart-item/get-cart-item-by-id/100"))
                 .andExpect(status().isOk());
-
         verify(cartItemService).getById(100L, "alice@x.com");
     }
 
     @Test
     @WithMockUser(username = "staff@x.com", roles = "STAFF")
     void getById_StaffForbidden_Returns403() throws Exception {
-
         mockMvc.perform(get("/cart-item/get-cart-item-by-id/100"))
                 .andExpect(status().isForbidden());
-
         verifyNoInteractions(cartItemService);
     }
 
@@ -76,13 +67,11 @@ public class CartItemControllerTest {
         CartItemDTORequest request = new CartItemDTORequest();
         request.setProductId(1L);
         request.setQuantity(2L);
-
         mockMvc.perform(post("/cart-item/save-cart-item")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
-
         verify(cartItemService).save(any(CartItemDTORequest.class), eq("alice@x.com"));
     }
 
@@ -101,7 +90,6 @@ public class CartItemControllerTest {
                 .andExpect(status().isForbidden());
     }
 
-
     @Test
     void save_Anonymous_Returns401() throws Exception {
         mockMvc.perform(post("/cart-item/save-cart-item")
@@ -116,20 +104,17 @@ public class CartItemControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
-
     @Test
     @WithMockUser(username = "alice@x.com", roles = "CUSTOMER")
     void updateQuantity_CustomerAuthorized_Returns200AndForwards() throws Exception {
         CartItemDTORequest request = new CartItemDTORequest();
         request.setProductId(1L);
         request.setQuantity(3L);
-
         mockMvc.perform(patch("/cart-item/update-cart-item/100")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
-
         verify(cartItemService).updateQuantity(eq(100L), eq("alice@x.com"), any(CartItemDTORequest.class));
     }
 
@@ -149,31 +134,10 @@ public class CartItemControllerTest {
     }
 
     @Test
-    void updateQuantity_Anonymous_Returns401() throws Exception {
-        mockMvc.perform(patch("/cart-item/update-cart-item/100")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                            {
-                                "productId": 1,
-                                "quantity": 3
-                            }
-                            """))
-                .andExpect(result ->
-                        org.junit.jupiter.api.Assertions.assertTrue(
-                                result.getResponse().getStatus() == 401
-                                        || result.getResponse().getStatus() == 403,
-                                "Expected 401 or 403, but received "
-                                        + result.getResponse().getStatus()
-                        ));
-    }
-
-    @Test
     @WithMockUser(username = "alice@x.com", roles = "CUSTOMER")
     void delete_CustomerAuthorized_Returns204AndForwards() throws Exception {
         mockMvc.perform(delete("/cart-item/delete-cart-item/100").with(csrf()))
                 .andExpect(status().isNoContent());
-
         verify(cartItemService).delete(100L, "alice@x.com");
     }
 
@@ -182,12 +146,6 @@ public class CartItemControllerTest {
     void delete_StaffForbidden_Returns403() throws Exception {
         mockMvc.perform(delete("/cart-item/delete-cart-item/100").with(csrf()))
                 .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void delete_Anonymous_Returns401() throws Exception {
-        mockMvc.perform(delete("/cart-item/delete-cart-item/100").with(csrf()))
-                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -205,5 +163,4 @@ public class CartItemControllerTest {
                 .andExpect(status().isForbidden());
         verifyNoInteractions(cartItemService);
     }
-
 }

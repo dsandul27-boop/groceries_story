@@ -32,19 +32,17 @@ public class CartController {
         return new ResponseEntity<>(cartList, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/get-cart-by-id/{cartId}")
-    public ResponseEntity<CartDTOResponse> getById(
-            @PathVariable @Positive(message = "Can't be null or negative") Long cartId) {
-        String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ResponseEntity<CartDTOResponse> getById(@PathVariable @Positive(message = "Can't be null or negative") Long cartId) {
         return new ResponseEntity<>(cartService.getById(cartId), HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/get-by-user-email")
-    public ResponseEntity<CartDTOResponse> getByEmail(@Valid @RequestParam String email){
+    public ResponseEntity<CartDTOResponse> getByEmail(){
         String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        return new ResponseEntity<>(cartService.getByEmail( callerEmail), HttpStatus.OK);
+        return new ResponseEntity<>(cartService.getByEmail(callerEmail), HttpStatus.OK);
     }
 
 
