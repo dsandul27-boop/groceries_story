@@ -1,16 +1,13 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.request.CartDTORequest;
 import com.example.demo.dto.response.CartDTOResponse;
-import com.example.demo.dto.response.CartItemDTOResponse;
-import com.example.demo.entities.Cart;
-import com.example.demo.entities.Status;
 import com.example.demo.service.impl.CartServiceImpl;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,24 +23,32 @@ public class CartController {
         this.cartService = cartService;
     }
 
-    @PostMapping("/save-cart")
-    public ResponseEntity<CartDTOResponse> save(@Valid @RequestBody CartDTORequest cartDTORequest){
-       return new ResponseEntity<>(cartService.save(cartDTORequest),HttpStatus.OK);
-    }
-
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     @GetMapping("/get-all-carts")
     public ResponseEntity<List<CartDTOResponse>> getAll(){
-        List<CartDTOResponse> cartList = cartService.getAll();
+        String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        List<CartDTOResponse> cartList = cartService.getAll(callerEmail);
         return new ResponseEntity<>(cartList, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/get-cart-by-id/{cartId}")
-    public ResponseEntity<CartDTOResponse> getById(@RequestParam @Positive(message = "Can't be null or negative") Long cartId){
-        return new ResponseEntity<CartDTOResponse>(cartService.getById(cartId), HttpStatus.ACCEPTED);
+    public ResponseEntity<CartDTOResponse> getById(@PathVariable @Positive(message = "Can't be null or negative") Long cartId) {
+        return new ResponseEntity<>(cartService.getById(cartId), HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/get-by-user-email")
+    public ResponseEntity<CartDTOResponse> getByEmail(){
+        String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        return new ResponseEntity<>(cartService.getByEmail(callerEmail), HttpStatus.OK);
+    }
+
+
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete-cart-by-id/{cartId}")
-    public ResponseEntity delete(@RequestParam @Positive(message = "Cant be null or negative") Long cartId){
-        return  new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<Void> delete(@PathVariable @Positive Long cartId){
+        cartService.delete(cartId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

@@ -3,8 +3,6 @@ package com.example.demo.controller;
 import com.example.demo.dto.request.ProductDTORequest;
 import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.dto.response.ProductFilterDTOResponse;
-import com.example.demo.entities.ProductType;
-import com.example.demo.entities.Vendor;
 import com.example.demo.service.impl.ProductServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -13,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.function.EntityResponse;
 
 import java.util.List;
 

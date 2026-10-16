@@ -2,7 +2,6 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.request.BatchDTORequest;
 import com.example.demo.dto.response.BatchDTOResponse;
-import com.example.demo.entities.Batch;
 import com.example.demo.service.impl.BatchServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;

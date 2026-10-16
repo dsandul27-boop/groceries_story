@@ -1,7 +1,5 @@
 package com.example.demo.dto.request;
 
-import com.example.demo.entities.User;
-import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

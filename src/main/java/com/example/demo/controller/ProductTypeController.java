@@ -1,9 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.request.ProductTypeDTORequest;
-import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.dto.response.ProductTypeDTOResponse;
-import com.example.demo.entities.Category;
 import com.example.demo.service.impl.ProductTypeServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
