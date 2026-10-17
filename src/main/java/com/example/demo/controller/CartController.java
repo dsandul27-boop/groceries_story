@@ -1,16 +1,20 @@
 package com.example.demo.controller;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+
 import com.example.demo.dto.response.CartDTOResponse;
+import com.example.demo.dto.response.PageResponse;
 import com.example.demo.service.impl.CartServiceImpl;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import static org.hibernate.dialect.SybaseASEDialect.MAX_PAGE_SIZE;
 
 @RestController
 @RequestMapping("/cart")
@@ -23,13 +27,28 @@ public class CartController {
         this.cartService = cartService;
     }
 
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     @GetMapping("/get-all-carts")
-    public ResponseEntity<List<CartDTOResponse>> getAll(){
-        String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        List<CartDTOResponse> cartList = cartService.getAll(callerEmail);
-        return new ResponseEntity<>(cartList, HttpStatus.OK);
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    public ResponseEntity<PageResponse<CartDTOResponse>> getAllCarts(
+            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+
+        Pageable finalPageable = pageable;
+
+        if (pageable.getPageSize() > MAX_PAGE_SIZE) {
+            finalPageable = PageRequest.of(
+                    pageable.getPageNumber(),
+                    MAX_PAGE_SIZE,
+                    pageable.getSort()
+            );
+        }
+
+        PageResponse<CartDTOResponse> response = cartService.getAll(finalPageable);
+        return ResponseEntity.ok(response);
     }
+
+
+
+
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/get-cart-by-id/{cartId}")

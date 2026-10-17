@@ -1,6 +1,7 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.dto.response.CartDTOResponse;
+import com.example.demo.dto.response.PageResponse;
 import com.example.demo.entities.Cart;
 import com.example.demo.entities.User;
 import com.example.demo.exception.EntityInUseException;
@@ -11,10 +12,11 @@ import com.example.demo.repository.CartRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable; // ДОБАВИТЬ
 
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -44,18 +46,16 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public List<CartDTOResponse> getAll(String authUser) {
-        List<CartDTOResponse> cartDTOResponseList = new ArrayList<>();
-        List<Cart> cartList = cartRepository.findAll();
-        if (cartList.isEmpty()){
-            throw new ResourceNotFoundException("Carts were not found");
-        }
-        for (Cart cart : cartList){
-            cartDTOResponseList.add(cartMapper.toDTO(cart));
-        }
+    public PageResponse<CartDTOResponse> getAll(Pageable pageable) {
+            Page<Cart> cartPage = cartRepository.findAll(pageable);
 
-        return cartDTOResponseList;
+            List<CartDTOResponse> content = cartPage.getContent().stream()
+                    .map(cartMapper::toResponse)
+                    .toList();
+            return PageResponse.fromPage(cartPage, content);
+
     }
+
 
     @Override
     public void delete(Long cartId) {
