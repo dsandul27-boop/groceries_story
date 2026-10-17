@@ -62,7 +62,6 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryMapper.toEntity(categoryDTORequest);
         category.setActiveStatus(ActiveStatus.ACTIVE);
         return categoryMapper.toDTO(categoryRepository.save(category));
-
     }
 
     @Override

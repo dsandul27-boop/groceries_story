@@ -56,6 +56,7 @@ public class CartItemServiceImpl implements CartItemService {
             cart = new Cart();
             cart.setUser(optionalUser.get());
             cart.setCreatedAt(Instant.now());
+            cart.setUpdateAt(Instant.now());
             cart = cartRepository.save(cart);
         }
 
