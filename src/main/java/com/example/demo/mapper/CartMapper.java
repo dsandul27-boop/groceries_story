@@ -1,13 +1,9 @@
 package com.example.demo.mapper;
 
 import com.example.demo.dto.request.CartDTORequest;
-import com.example.demo.dto.request.CategoryDTORequest;
 import com.example.demo.dto.response.CartDTOResponse;
 import com.example.demo.entities.Cart;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
-
-import java.time.Instant;
 
 @Component
 public class CartMapper {

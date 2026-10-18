@@ -6,7 +6,6 @@ import com.example.demo.dto.response.ProductFilterDTOResponse;
 import com.example.demo.dto.response.ProductTypeFilterDTOResponse;
 import com.example.demo.dto.response.VendorFilterDTOResponse;
 import com.example.demo.entities.Product;
-import com.example.demo.entities.Vendor;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.ProductTypeRepository;
 import com.example.demo.repository.VendorRepository;

@@ -3,8 +3,6 @@ package com.example.demo.service;
 import com.example.demo.dto.request.ProductDTORequest;
 import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.dto.response.ProductFilterDTOResponse;
-import com.example.demo.entities.ProductType;
-import com.example.demo.entities.Vendor;
 
 import java.util.List;
 

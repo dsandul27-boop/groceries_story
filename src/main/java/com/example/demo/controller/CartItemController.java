@@ -59,5 +59,4 @@ public class CartItemController {
         cartItemService.delete(cartItemId, callerEmail);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-
 }

@@ -3,7 +3,6 @@ package com.example.demo.mapper;
 import com.example.demo.dto.request.UserDTORequest;
 import com.example.demo.dto.response.UserDTOResponse;
 import com.example.demo.entities.User;
-import jdk.jfr.Category;
 import org.springframework.stereotype.Component;
 
 @Component
