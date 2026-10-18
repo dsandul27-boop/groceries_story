@@ -25,7 +25,7 @@ public class Cart {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @Column(name = "update_at", nullable = false)
+    @Column(name = "update_at")
     private Instant updateAt;
 
 }

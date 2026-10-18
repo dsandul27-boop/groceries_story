@@ -14,8 +14,7 @@ import com.example.demo.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Pageable; // ДОБАВИТЬ
-
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,10 +22,10 @@ import java.util.Optional;
 @Service
 public class CartServiceImpl implements CartService {
 
-    private CartMapper cartMapper;
-    private CartRepository cartRepository;
-    private UserRepository userRepository;
-    private CartItemRepository cartItemRepository;
+    private final CartMapper cartMapper;
+    private final CartRepository cartRepository;
+    private final UserRepository userRepository;
+    private final CartItemRepository cartItemRepository;
 
     @Autowired
     public CartServiceImpl(CartMapper cartMapper, CartRepository cartRepository, UserRepository userRepository, CartItemRepository cartItemRepository) {
@@ -35,7 +34,6 @@ public class CartServiceImpl implements CartService {
         this.userRepository = userRepository;
         this.cartItemRepository = cartItemRepository;
     }
-
 
     @Override
     public CartDTOResponse getById(Long cartId) {
@@ -50,12 +48,11 @@ public class CartServiceImpl implements CartService {
             Page<Cart> cartPage = cartRepository.findAll(pageable);
 
             List<CartDTOResponse> content = cartPage.getContent().stream()
-                    .map(cartMapper::toResponse)
+                    .map(cartMapper::toDTO)
                     .toList();
             return PageResponse.fromPage(cartPage, content);
 
     }
-
 
     @Override
     public void delete(Long cartId) {

@@ -8,9 +8,7 @@ import org.springframework.data.domain.Pageable;
 public interface CartService {
 
     CartDTOResponse getById(Long cartId);
-    // În CartService.java
     PageResponse<CartDTOResponse> getAll(Pageable pageable);
-
     void delete(Long cartId);
     CartDTOResponse getByEmail(String email);
 }

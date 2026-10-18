@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -28,8 +27,6 @@ class SecurityChainIntegrationTest {
     @MockitoBean
     private JwtUtil jwtUtil;
 
-    // Folosim o rută generică neînregistrată în permitAll().
-    // Ea va fi prinsă automat de regula .anyRequest().authenticated() din SecurityConfig.
     private static final String PROTECTED_ENDPOINT = "/api/test-secure";
 
     @BeforeEach
@@ -69,10 +66,7 @@ class SecurityChainIntegrationTest {
 
     @Test
     void protectedEndpoint_withValidToken_bypassesFiltersButReturns404InsteadOf401() throws Exception {
-        // Dacă token-ul este perfect valid, filtrul îl acceptă și consideră cererea ca fiind AUTENTIFICATĂ.
-        // Odată autentificată, cererea trece de securitate și ajunge în dispatcher-ul MVC,
-        // unde va returna 404 pentru că ruta fizică nu există.
-        // Acest status de 404 demonstrează că filtrul a funcționat corect și a lăsat cererea autentificată să treacă!
+
         String validToken = "valid.test.token";
         when(jwtUtil.validateToken(validToken)).thenReturn(true);
         when(jwtUtil.extractUsername(validToken)).thenReturn("test@example.com");

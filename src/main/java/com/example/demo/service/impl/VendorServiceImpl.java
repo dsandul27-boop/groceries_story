@@ -74,8 +74,3 @@ public class VendorServiceImpl implements VendorService {
     }
 }
 
-//findAll()
-//findById()
-//save()
-//deleteById()
-//existsById()

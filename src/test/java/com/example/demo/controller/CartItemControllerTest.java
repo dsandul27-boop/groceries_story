@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CartItemController.class)
-// Uses the single global configuration from CartControllerTest now
+
 @Import(CartControllerTest.MethodSecurityTestConfig.class)
 public class CartItemControllerTest {
 
@@ -66,6 +66,7 @@ public class CartItemControllerTest {
         request.setProductId(1L);
         request.setQuantity(2L);
         mockMvc.perform(post("/cart-item/save-cart-item")
+
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

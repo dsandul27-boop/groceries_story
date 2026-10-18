@@ -129,7 +129,7 @@ class CartServiceImplTest {
         Page<Cart> cartPage = new PageImpl<>(List.of(cart), pageable, 1);
 
         when(cartRepository.findAll(pageable)).thenReturn(cartPage);
-        when(cartMapper.toResponse(cart)).thenReturn(dtoResponse);
+        when(cartMapper.toDTO(cart)).thenReturn(dtoResponse);
 
         // When
         PageResponse<CartDTOResponse> result = cartService.getAll(pageable);
@@ -144,7 +144,7 @@ class CartServiceImplTest {
         assertTrue(result.isLast());
 
         verify(cartRepository, times(1)).findAll(pageable);
-        verify(cartMapper, times(1)).toResponse(cart);
+        verify(cartMapper, times(1)).toDTO(cart);
     }
 
     @Test

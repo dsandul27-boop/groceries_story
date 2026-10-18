@@ -12,31 +12,20 @@ import java.time.Instant;
 @Component
 public class CartMapper {
 
-    public CartDTOResponse toDTO(Cart cart){
-       CartDTOResponse cartDTOResponse = new CartDTOResponse();
-       cartDTOResponse.setId(cart.getId());
-       cartDTOResponse.setUserId(cart.getUser().getId());
-       cartDTOResponse.setCreatedAt(cart.getCreatedAt());
-       cartDTOResponse.setUpdateAt(cart.getUpdateAt());
-       return cartDTOResponse;
-    }
-
-    public Cart toEntity(CartDTORequest cartDTORequest){
-        Cart cart = new Cart();
-        return cart;
-    }
-
-    public CartDTOResponse toResponse(Cart cart) {
+    public CartDTOResponse toDTO(Cart cart) {
         if (cart == null) {
             return null;
         }
+        CartDTOResponse cartDTOResponse = new CartDTOResponse();
+        cartDTOResponse.setId(cart.getId());
+        cartDTOResponse.setUserId(cart.getUser().getId());
+        cartDTOResponse.setCreatedAt(cart.getCreatedAt());
+        cartDTOResponse.setUpdateAt(cart.getUpdateAt());
+        return cartDTOResponse;
+    }
 
-        CartDTOResponse response = new CartDTOResponse();
-        response.setId(cart.getId());
-        response.setUserId(cart.getUser().getId());
-        response.setCreatedAt(cart.getCreatedAt());
-        response.setUpdateAt(cart.getUpdateAt());
-
-        return response;
+    public Cart toEntity(CartDTORequest cartDTORequest) {
+        Cart cart = new Cart();
+        return cart;
     }
 }

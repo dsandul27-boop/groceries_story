@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 
@@ -8,13 +9,11 @@ import com.example.demo.dto.response.PageResponse;
 import com.example.demo.service.impl.CartServiceImpl;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import static org.hibernate.dialect.SybaseASEDialect.MAX_PAGE_SIZE;
 
 @RestController
 @RequestMapping("/cart")
@@ -27,28 +26,20 @@ public class CartController {
         this.cartService = cartService;
     }
 
-    @GetMapping("/get-all-carts")
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
-    public ResponseEntity<PageResponse<CartDTOResponse>> getAllCarts(
-            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        private static final int MAX_PAGE_SIZE = 100;
 
-        Pageable finalPageable = pageable;
+        @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+        @GetMapping("/get-all-carts")
+        public ResponseEntity<PageResponse<CartDTOResponse>> getAllCarts(@ParameterObject Pageable pageable) {
+            Pageable resolvedPageable = pageable;
 
-        if (pageable.getPageSize() > MAX_PAGE_SIZE) {
-            finalPageable = PageRequest.of(
-                    pageable.getPageNumber(),
-                    MAX_PAGE_SIZE,
-                    pageable.getSort()
-            );
+            if (pageable.getPageSize() > MAX_PAGE_SIZE) {
+                resolvedPageable = PageRequest.of(pageable.getPageNumber(), MAX_PAGE_SIZE, pageable.getSort());
+            }
+
+            PageResponse<CartDTOResponse> response = cartService.getAll(resolvedPageable);
+            return ResponseEntity.ok(response);
         }
-
-        PageResponse<CartDTOResponse> response = cartService.getAll(finalPageable);
-        return ResponseEntity.ok(response);
-    }
-
-
-
-
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/get-cart-by-id/{cartId}")
@@ -62,7 +53,6 @@ public class CartController {
         String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         return new ResponseEntity<>(cartService.getByEmail(callerEmail), HttpStatus.OK);
     }
-
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete-cart-by-id/{cartId}")

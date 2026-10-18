@@ -3,11 +3,8 @@ package com.example.demo.service.impl;
 import com.example.demo.dto.request.CategoryDTORequest;
 import com.example.demo.dto.response.CategoryDTOResponse;
 import com.example.demo.dto.response.CategoryFilterDTOResponse;
-import com.example.demo.dto.response.ProductDTOResponse;
-import com.example.demo.dto.response.ProductTypeDTOResponse;
 import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Category;
-import com.example.demo.entities.ProductType;
 import com.example.demo.exception.EntityInUseException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.CategoryMapper;
@@ -38,7 +35,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryDTOResponse> getAll() {
         List<Category> categoryList = categoryRepository.findAll();
-        if(categoryList.isEmpty()){
+        if (categoryList.isEmpty()) {
             throw new ResourceNotFoundException("No one Category found");
         }
         List<CategoryDTOResponse> categoryDTOResponseList = new ArrayList<>();
@@ -51,7 +48,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDTOResponse getById(Long categoryId) {
         Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
-        if (optionalCategory.isEmpty()){
+        if (optionalCategory.isEmpty()) {
             throw new ResourceNotFoundException("Category not found by Id");
         }
         return categoryMapper.toDTO(optionalCategory.get());
@@ -66,11 +63,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void delete(Long categoryId) {
-        if (!categoryRepository.existsById(categoryId)){
+        if (!categoryRepository.existsById(categoryId)) {
             throw new ResourceNotFoundException("Already doesn't exist");
         }
         boolean productTypeExist = productTypeService.existsByCategoryId(categoryId);
-        if (productTypeExist){
+        if (productTypeExist) {
             throw new EntityInUseException("Product type dependencies exist");
         }
         categoryRepository.deleteById(categoryId);
