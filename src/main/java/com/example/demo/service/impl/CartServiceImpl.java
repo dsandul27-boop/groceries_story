@@ -1,6 +1,7 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.dto.response.CartDTOResponse;
+import com.example.demo.dto.response.PageResponse;
 import com.example.demo.entities.Cart;
 import com.example.demo.entities.User;
 import com.example.demo.exception.EntityInUseException;
@@ -11,20 +12,20 @@ import com.example.demo.repository.CartRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class CartServiceImpl implements CartService {
 
-    private CartMapper cartMapper;
-    private CartRepository cartRepository;
-    private UserRepository userRepository;
-    private CartItemRepository cartItemRepository;
+    private final CartMapper cartMapper;
+    private final CartRepository cartRepository;
+    private final UserRepository userRepository;
+    private final CartItemRepository cartItemRepository;
 
     @Autowired
     public CartServiceImpl(CartMapper cartMapper, CartRepository cartRepository, UserRepository userRepository, CartItemRepository cartItemRepository) {
@@ -33,7 +34,6 @@ public class CartServiceImpl implements CartService {
         this.userRepository = userRepository;
         this.cartItemRepository = cartItemRepository;
     }
-
 
     @Override
     public CartDTOResponse getById(Long cartId) {
@@ -44,17 +44,14 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public List<CartDTOResponse> getAll(String authUser) {
-        List<CartDTOResponse> cartDTOResponseList = new ArrayList<>();
-        List<Cart> cartList = cartRepository.findAll();
-        if (cartList.isEmpty()){
-            throw new ResourceNotFoundException("Carts were not found");
-        }
-        for (Cart cart : cartList){
-            cartDTOResponseList.add(cartMapper.toDTO(cart));
-        }
+    public PageResponse<CartDTOResponse> getAll(Pageable pageable) {
+            Page<Cart> cartPage = cartRepository.findAll(pageable);
 
-        return cartDTOResponseList;
+            List<CartDTOResponse> content = cartPage.getContent().stream()
+                    .map(cartMapper::toDTO)
+                    .toList();
+            return PageResponse.fromPage(cartPage, content);
+
     }
 
     @Override

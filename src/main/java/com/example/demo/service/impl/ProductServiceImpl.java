@@ -10,8 +10,6 @@ import com.example.demo.entities.Vendor;
 import com.example.demo.exception.EntityInUseException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.ProductMapper;
-import com.example.demo.mapper.ProductTypeMapper;
-import com.example.demo.mapper.VendorMapper;
 import com.example.demo.repository.BatchRepository;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.ProductTypeRepository;

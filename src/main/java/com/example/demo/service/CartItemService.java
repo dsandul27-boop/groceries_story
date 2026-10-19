@@ -2,10 +2,6 @@ package com.example.demo.service;
 
 import com.example.demo.dto.request.CartItemDTORequest;
 import com.example.demo.dto.response.CartItemDTOResponse;
-import com.example.demo.entities.CartItem;
-import jdk.dynalink.linker.LinkerServices;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.security.core.Authentication;
 
 import java.util.List;
 

@@ -5,7 +5,6 @@ import com.example.demo.dto.response.BatchDTOResponse;
 import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Batch;
 import com.example.demo.entities.Product;
-import com.example.demo.exception.EntityInUseException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.BatchMapper;
 import com.example.demo.repository.BatchRepository;

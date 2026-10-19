@@ -3,13 +3,11 @@ package com.example.demo.mapper;
 import com.example.demo.dto.request.CategoryDTORequest;
 import com.example.demo.dto.response.CategoryDTOResponse;
 import com.example.demo.dto.response.CategoryFilterDTOResponse;
-import com.example.demo.dto.response.ProductTypeDTOResponse;
 import com.example.demo.dto.response.ProductTypeFilterDTOResponse;
 import com.example.demo.entities.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component

@@ -1,6 +1,5 @@
 package com.example.demo.dto.request;
 
-import com.example.demo.entities.ActiveStatus;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;

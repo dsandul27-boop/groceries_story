@@ -28,7 +28,6 @@ public class VendorControllerTest {
     @MockitoBean
     private VendorServiceImpl vendorService;
 
-    // Satisfies JwtAuthenticationFilter's dependency so the @WebMvcTest context loads.
     @MockitoBean
     private JwtUtil jwtUtil;
 

@@ -1,7 +1,6 @@
 package com.example.demo.dto.response;
 
 import com.example.demo.entities.ActiveStatus;
-import com.example.demo.entities.Product;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

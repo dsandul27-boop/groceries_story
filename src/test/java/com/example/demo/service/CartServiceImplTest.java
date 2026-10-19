@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.response.CartDTOResponse;
+import com.example.demo.dto.response.PageResponse;
 import com.example.demo.entities.Cart;
 import com.example.demo.entities.User;
 import com.example.demo.exception.ResourceNotFoundException;
@@ -14,7 +15,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
+import org.springframework.data.domain.Pageable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,10 +57,6 @@ class CartServiceImplTest {
         verify(cartRepository).deleteById(cartId);
     }
 
-
-
-
-
     @Test
     void getByEmail_existingUserWithCart_returnsDto() {
         String email = "user@example.com";
@@ -78,7 +80,6 @@ class CartServiceImplTest {
         verify(cartRepository).findCartByUserEmail(email);
         verify(cartMapper).toDTO(cart);
     }
-
 
 
     @Test
@@ -118,43 +119,52 @@ class CartServiceImplTest {
         verify(cartMapper, never()).toDTO(any(Cart.class));
     }
 
-
     @Test
-    void getAll_multipleCarts_returnsAllDtos() {
-        Cart cart1 = mock(Cart.class);
-        Cart cart2 = mock(Cart.class);
 
-        CartDTOResponse dto1 = mock(CartDTOResponse.class);
-        CartDTOResponse dto2 = mock(CartDTOResponse.class);
+    void getAll_withPopulatedPage_returnsCorrectPageResponse() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 20);
+        Cart cart = new Cart();
+        CartDTOResponse dtoResponse = new CartDTOResponse();
+        Page<Cart> cartPage = new PageImpl<>(List.of(cart), pageable, 1);
 
-        when(cartRepository.findAll())
-                .thenReturn(List.of(cart1, cart2));
-        when(cartMapper.toDTO(cart1)).thenReturn(dto1);
-        when(cartMapper.toDTO(cart2)).thenReturn(dto2);
+        when(cartRepository.findAll(pageable)).thenReturn(cartPage);
+        when(cartMapper.toDTO(cart)).thenReturn(dtoResponse);
 
-        List<CartDTOResponse> result =
-                cartService.getAll("admin@example.com");
+        // When
+        PageResponse<CartDTOResponse> result = cartService.getAll(pageable);
 
-        assertEquals(2, result.size());
-        assertSame(dto1, result.get(0));
-        assertSame(dto2, result.get(1));
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals(0, result.getPage());
+        assertEquals(20, result.getSize());
+        assertEquals(1, result.getTotalElements());
+        assertEquals(1, result.getTotalPages());
+        assertTrue(result.isLast());
 
-        verify(cartRepository).findAll();
-        verify(cartMapper).toDTO(cart1);
-        verify(cartMapper).toDTO(cart2);
+        verify(cartRepository, times(1)).findAll(pageable);
+        verify(cartMapper, times(1)).toDTO(cart);
     }
 
-
     @Test
-    void getAll_noCarts_throwsException() {
-        when(cartRepository.findAll()).thenReturn(List.of());
+    void getAll_withEmptyPage_returnsEmptyContentAndDoesNotThrow() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Cart> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        assertThrows(
-                ResourceNotFoundException.class,
-                () -> cartService.getAll("admin@example.com")
-        );
+        when(cartRepository.findAll(pageable)).thenReturn(emptyPage);
 
-        verify(cartMapper, never()).toDTO(any(Cart.class));
+        // When & Then (No exception should be thrown)
+        PageResponse<CartDTOResponse> result = assertDoesNotThrow(() -> cartService.getAll(pageable));
+
+        assertNotNull(result);
+        assertTrue(result.getContent().isEmpty());
+        assertEquals(0, result.getTotalElements());
+        assertEquals(0, result.getTotalPages());
+
+        verify(cartRepository, times(1)).findAll(pageable);
+        verifyNoInteractions(cartMapper);
     }
 
 

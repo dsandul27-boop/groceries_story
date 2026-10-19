@@ -18,8 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.antlr.v4.runtime.tree.xpath.XPath.findAll;
-
 @Service
 public class VendorServiceImpl implements VendorService {
 
@@ -74,8 +72,3 @@ public class VendorServiceImpl implements VendorService {
     }
 }
 
-//findAll()
-//findById()
-//save()
-//deleteById()
-//existsById()
