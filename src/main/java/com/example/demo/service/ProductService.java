@@ -11,6 +11,7 @@ public interface ProductService {
     ProductDTOResponse save(ProductDTORequest productDTORequest);
     List<ProductDTOResponse> getAll ();
     ProductDTOResponse getById(Long productDTOId);
-    void delete (Long productDTOId);
+    void hardDelete (Long productDTOId);
+    void softDelete (Long productDTOId);
     List<ProductFilterDTOResponse> getProductFilter();
 }

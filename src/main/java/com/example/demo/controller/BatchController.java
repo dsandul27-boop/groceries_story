@@ -44,10 +44,17 @@ public class BatchController {
         return new ResponseEntity<>(batchDTOResponse, HttpStatus.OK) ;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/hard-delete-batch-by-id/{batchId}")
+    public ResponseEntity hardDelete (@PathVariable @Positive(message = "Id must be positive") Long batchId){
+        batchService.hardDelete(batchId);
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    @DeleteMapping("/delete-batch-by-id/{batchId}")
-    public ResponseEntity delete (@PathVariable @Positive(message = "Id must be positive") Long batchId){
-        batchService.delete(batchId);
+    @DeleteMapping("/soft-delete-batch-by-id/{batchId}")
+    public ResponseEntity softDelete (@PathVariable @Positive(message = "Id must be positive") Long batchId){
+        batchService.softDelete(batchId);
         return new ResponseEntity(HttpStatus.OK);
     }
 }

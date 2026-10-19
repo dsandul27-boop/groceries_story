@@ -7,7 +7,12 @@ import java.util.List;
 
 public interface BatchService {
     BatchDTOResponse save(BatchDTORequest batchDTORequest);
+
     List<BatchDTOResponse> getAll();
+
     BatchDTOResponse getById(Long id);
-    void delete(Long id);
+
+    void hardDelete(Long id);
+
+    void softDelete(Long id);
 }

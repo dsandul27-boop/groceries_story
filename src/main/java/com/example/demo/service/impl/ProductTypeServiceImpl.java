@@ -6,6 +6,7 @@ import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Category;
 import com.example.demo.entities.ProductType;
 import com.example.demo.exception.EntityInUseException;
+import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.ProductTypeMapper;
 import com.example.demo.repository.CategoryRepository;
@@ -75,15 +76,30 @@ public class ProductTypeServiceImpl implements ProductTypeService {
     }
 
     @Override
-    public void delete(Long productTypeDTOId) {
-        if (!productTypeRepository.existsById(productTypeDTOId)) {
+    public void hardDelete(Long productTypeId) {
+        if (!productTypeRepository.existsById(productTypeId)) {
             throw new ResourceNotFoundException("Already doesn't exist");
         }
-        boolean productExist = productRepository.existsByProductTypeId(productTypeDTOId);
+        boolean productExist = productRepository.existsByProductTypeId(productTypeId);
         if (productExist) {
             throw new EntityInUseException("Product dependencies exist");
         }
-        productTypeRepository.deleteById(productTypeDTOId);
+        productTypeRepository.deleteById(productTypeId);
+    }
+
+    @Override
+    public void softDelete(Long productTypeId) {
+
+        Optional<ProductType> optionalProductType= productTypeRepository.findById(productTypeId);
+        if (optionalProductType.isEmpty()) {
+            throw new ResourceNotFoundException("Doesn't exist");
+        }
+        ProductType productType = optionalProductType.get();
+        if (productType.getActiveStatus().equals(ActiveStatus.INACTIVE)) {
+            throw new IsInactiveException("Product type is already inactive");
+        }
+        productType.setActiveStatus(ActiveStatus.INACTIVE);
+        productTypeRepository.save(productType);
     }
 
     @Override

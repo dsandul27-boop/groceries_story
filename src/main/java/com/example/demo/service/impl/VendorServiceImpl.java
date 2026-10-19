@@ -3,8 +3,10 @@ package com.example.demo.service.impl;
 import com.example.demo.dto.request.VendorDTORequest;
 import com.example.demo.dto.response.VendorDTOResponse;
 import com.example.demo.entities.ActiveStatus;
+import com.example.demo.entities.Product;
 import com.example.demo.entities.Vendor;
 import com.example.demo.exception.EntityInUseException;
+import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.ProductMapper;
 import com.example.demo.mapper.VendorMapper;
@@ -60,7 +62,7 @@ public class VendorServiceImpl implements VendorService {
         return vendorMapper.toDTO(vendorRepository.save(vendor));
     }
 
-    public void delete (Long vendorId){
+    public void hardDelete (Long vendorId){
         if (!vendorRepository.existsById(vendorId)) {
             throw new ResourceNotFoundException("Vendor not found");
         }
@@ -69,6 +71,20 @@ public class VendorServiceImpl implements VendorService {
             throw new EntityInUseException("Product dependencies exist");
         }
         vendorRepository.deleteById(vendorId);
+    }
+
+    @Override
+    public void softDelete(Long vendorId) {
+        Optional<Vendor> optionalVendor= vendorRepository.findById(vendorId);
+        if (optionalVendor.isEmpty()) {
+            throw new ResourceNotFoundException("Doesn't exist");
+        }
+        Vendor vendor = optionalVendor.get();
+        if (vendor.getActiveStatus().equals(ActiveStatus.INACTIVE)) {
+            throw new IsInactiveException("Vendor is already inactive");
+        }
+        vendor.setActiveStatus(ActiveStatus.INACTIVE);
+        vendorRepository.save(vendor);
     }
 }
 

@@ -6,6 +6,7 @@ import com.example.demo.dto.response.CategoryFilterDTOResponse;
 import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Category;
 import com.example.demo.exception.EntityInUseException;
+import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.CategoryMapper;
 import com.example.demo.repository.CategoryRepository;
@@ -38,8 +39,9 @@ public class CategoryServiceImpl implements CategoryService {
         if (categoryList.isEmpty()) {
             throw new ResourceNotFoundException("No one Category found");
         }
+        List<Category> activeCategory = activeCategory(categoryList);
         List<CategoryDTOResponse> categoryDTOResponseList = new ArrayList<>();
-        for (Category category : categoryList) {
+        for (Category category : activeCategory) {
             categoryDTOResponseList.add(categoryMapper.toDTO(category));
         }
         return categoryDTOResponseList;
@@ -50,6 +52,9 @@ public class CategoryServiceImpl implements CategoryService {
         Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
         if (optionalCategory.isEmpty()) {
             throw new ResourceNotFoundException("Category not found by Id");
+        }
+        if (optionalCategory.get().getActiveStatus().equals(ActiveStatus.INACTIVE)){
+            throw new IsInactiveException("Category is not available");
         }
         return categoryMapper.toDTO(optionalCategory.get());
     }
@@ -62,7 +67,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void delete(Long categoryId) {
+    public void hardDelete(Long categoryId) {
         if (!categoryRepository.existsById(categoryId)) {
             throw new ResourceNotFoundException("Already doesn't exist");
         }
@@ -74,6 +79,20 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    public void softDelete(Long categoryId) {
+        Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+        if (optionalCategory.isEmpty()) {
+            throw new ResourceNotFoundException("Doesn't exist");
+        }
+        Category category = optionalCategory.get();
+        if (category.getActiveStatus().equals(ActiveStatus.INACTIVE)) {
+            throw new IsInactiveException("Category is already inactive");
+        }
+        category.setActiveStatus(ActiveStatus.INACTIVE);
+        categoryRepository.save(category);
+    }
+
+    @Override
     public List<CategoryFilterDTOResponse> getCategoryWithProductType() {
 
         List<Category> categoryList = categoryRepository.findAll();
@@ -82,11 +101,24 @@ public class CategoryServiceImpl implements CategoryService {
             throw new ResourceNotFoundException("No categories found");
         }
 
-        List<CategoryFilterDTOResponse> result = new ArrayList<>();
+        List<Category> activeCategory = activeCategory(categoryList);
 
-        for (Category category : categoryList) {
-            result.add(categoryMapper.categoryFilterDTOResponse(category));
+        List<CategoryFilterDTOResponse> resultList = new ArrayList<>();
+
+        for (Category category : activeCategory) {
+            resultList.add(categoryMapper.categoryFilterDTOResponse(category));
         }
-        return result;
+        return resultList;
+    }
+
+    @Override
+    public List<Category> activeCategory(List<Category> categoryList) {
+        List<Category> activeCategory = new ArrayList<>();
+        for (Category category:categoryList){
+            if (category.getActiveStatus().equals(ActiveStatus.ACTIVE)){
+                activeCategory.add(category);
+            }
+        }
+        return activeCategory;
     }
 }

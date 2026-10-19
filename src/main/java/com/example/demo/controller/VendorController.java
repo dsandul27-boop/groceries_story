@@ -43,13 +43,18 @@ public class VendorController {
         return new ResponseEntity<>(vendorService.save(vendorDTORequest), HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    @DeleteMapping("/delete-by-id/{id}")
-    public ResponseEntity delete(@Valid @PathVariable @Positive(message = "Must be positive") Long id){
-        vendorService.delete(id);
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/hard-delete-by-id/{id}")
+    public ResponseEntity hardDelete(@Valid @PathVariable @Positive(message = "Must be positive") Long id){
+        vendorService.hardDelete(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @DeleteMapping("/soft-delete-by-id/{id}")
+    public ResponseEntity softDelete(@Valid @PathVariable @Positive(message = "Must be positive") Long id){
+        vendorService.softDelete(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

@@ -8,6 +8,7 @@ import com.example.demo.entities.Product;
 import com.example.demo.entities.ProductType;
 import com.example.demo.entities.Vendor;
 import com.example.demo.exception.EntityInUseException;
+import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.ProductMapper;
 import com.example.demo.repository.BatchRepository;
@@ -86,7 +87,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void delete(Long productId) {
+    public void hardDelete(Long productId) {
         if (!productRepository.existsById(productId)) {
             throw new ResourceNotFoundException("Product already doesn't exist");
         }
@@ -95,6 +96,20 @@ public class ProductServiceImpl implements ProductService {
             throw new EntityInUseException("Exist batch dependencies");
         }
         productRepository.deleteById(productId);
+    }
+
+    @Override
+    public void softDelete(Long productId) {
+        Optional<Product> optionalProduct= productRepository.findById(productId);
+        if (optionalProduct.isEmpty()) {
+            throw new ResourceNotFoundException("Doesn't exist");
+        }
+        Product product = optionalProduct.get();
+        if (product.getActiveStatus().equals(ActiveStatus.INACTIVE)) {
+            throw new IsInactiveException("Product is already inactive");
+        }
+        product.setActiveStatus(ActiveStatus.INACTIVE);
+        productRepository.save(product);
     }
 
     @Override
@@ -109,7 +124,6 @@ public class ProductServiceImpl implements ProductService {
         }
         return productFilterList;
     }
-
 
 }
 
