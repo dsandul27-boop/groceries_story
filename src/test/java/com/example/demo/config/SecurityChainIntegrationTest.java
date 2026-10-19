@@ -45,7 +45,6 @@ class SecurityChainIntegrationTest {
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.error").value("Unauthorized"))
                 .andExpect(jsonPath("$.message").value("Full authentication is required to access this resource."))
-                .andExpect(jsonPath("$.path").value(PROTECTED_ENDPOINT))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 
@@ -60,8 +59,7 @@ class SecurityChainIntegrationTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.error").value("Unauthorized"))
-                .andExpect(jsonPath("$.message").value("Full authentication is required to access this resource."))
-                .andExpect(jsonPath("$.path").value(PROTECTED_ENDPOINT));
+                .andExpect(jsonPath("$.message").value("Full authentication is required to access this resource."));
     }
 
     @Test

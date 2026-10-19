@@ -9,6 +9,7 @@ import com.example.demo.dto.response.PageResponse;
 import com.example.demo.service.impl.CartServiceImpl;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,26 +21,25 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
 
     private final CartServiceImpl cartService;
+    private static final int MAX_PAGE_SIZE = 100;
 
     @Autowired
     public CartController(CartServiceImpl cartService) {
         this.cartService = cartService;
     }
 
-        private static final int MAX_PAGE_SIZE = 100;
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @GetMapping("/get-all-carts")
+    public ResponseEntity<PageResponse<CartDTOResponse>> getAll(@ParameterObject @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        Pageable resolvedPageable = pageable;
 
-        @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-        @GetMapping("/get-all-carts")
-        public ResponseEntity<PageResponse<CartDTOResponse>> getAllCarts(@ParameterObject Pageable pageable) {
-            Pageable resolvedPageable = pageable;
-
-            if (pageable.getPageSize() > MAX_PAGE_SIZE) {
-                resolvedPageable = PageRequest.of(pageable.getPageNumber(), MAX_PAGE_SIZE, pageable.getSort());
-            }
-
-            PageResponse<CartDTOResponse> response = cartService.getAll(resolvedPageable);
-            return ResponseEntity.ok(response);
+        if (pageable.getPageSize() > MAX_PAGE_SIZE) {
+            resolvedPageable = PageRequest.of(pageable.getPageNumber(), MAX_PAGE_SIZE, pageable.getSort());
         }
+
+        PageResponse<CartDTOResponse> response = cartService.getAll(resolvedPageable);
+        return ResponseEntity.ok(response);
+    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/get-cart-by-id/{cartId}")
@@ -49,14 +49,14 @@ public class CartController {
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/get-by-user-email")
-    public ResponseEntity<CartDTOResponse> getByEmail(){
+    public ResponseEntity<CartDTOResponse> getByEmail() {
         String callerEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         return new ResponseEntity<>(cartService.getByEmail(callerEmail), HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete-cart-by-id/{cartId}")
-    public ResponseEntity<Void> delete(@PathVariable @Positive Long cartId){
+    public ResponseEntity<Void> delete(@PathVariable @Positive Long cartId) {
         cartService.delete(cartId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

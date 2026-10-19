@@ -89,7 +89,9 @@ class CartControllerTest {
 
         assertEquals(20, captured.getPageSize());
         assertEquals(0, captured.getPageNumber());
-        assertTrue(captured.getSort().isUnsorted());
+
+        assertTrue(captured.getSort().isSorted(), "Sort should be applied");
+        assertNotNull(captured.getSort().getOrderFor("id"), "Should sort by 'id'");
 
     }
 
