@@ -8,17 +8,21 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@EnableMethodSecurity
 @WebMvcTest(VendorController.class)
 public class VendorControllerTest {
 
@@ -32,6 +36,7 @@ public class VendorControllerTest {
     private JwtUtil jwtUtil;
 
     @Test
+    @WithMockUser(roles = "CUSTOMER")
     void getById_shouldReturn200() throws Exception {
 
         VendorDTOResponse dto = new VendorDTOResponse();
@@ -41,17 +46,16 @@ public class VendorControllerTest {
         when(vendorService.getById(1L))
                 .thenReturn(dto);
 
-        mockMvc.perform(get("/vendors//get-by-id/1"))
+        mockMvc.perform(get("/vendors/get-by-id/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Latti"));
     }
 
-
     @Test
+    @WithMockUser(roles = "CUSTOMER")
     void getAll_shouldReturn200() throws Exception {
 
-        // Arrange
         VendorDTOResponse dto = new VendorDTOResponse();
         dto.setId(1L);
         dto.setName("Latti");
@@ -61,7 +65,6 @@ public class VendorControllerTest {
         when(vendorService.getAll())
                 .thenReturn(dtoList);
 
-        // Act + Assert
         mockMvc.perform(get("/vendors/get-all-vendor"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
@@ -69,40 +72,64 @@ public class VendorControllerTest {
                 .andExpect(jsonPath("$[0].name").value("Latti"));
     }
 
-        @Test
-        void save_shouldReturn200() throws Exception {
+    @Test
+    @WithMockUser(roles = "STAFF")
+    void save_shouldReturn200() throws Exception {
 
-            VendorDTORequest dto = new VendorDTORequest();
-            dto.setName("Latti");
+        VendorDTORequest dto = new VendorDTORequest();
+        dto.setName("Latti");
 
-            VendorDTOResponse vendorDTOResponse = new VendorDTOResponse();
-            vendorDTOResponse.setId(1L);
-            vendorDTOResponse.setName("Latti");
+        VendorDTOResponse vendorDTOResponse = new VendorDTOResponse();
+        vendorDTOResponse.setId(1L);
+        vendorDTOResponse.setName("Latti");
 
-            when(vendorService.save(dto)).thenReturn(vendorDTOResponse);
+        when(vendorService.save(dto)).thenReturn(vendorDTOResponse);
 
-            mockMvc.perform(
-                            post("/vendors/save-vendor")
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content("""
-                            {
-                                "name": "Latti"
-                            }
-                            """)
-                    )
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(1))
-                    .andExpect(jsonPath("$.name").value("Latti"));
+        mockMvc.perform(
+                        post("/vendors/save-vendor")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                        {
+                            "name": "Latti"
+                        }
+                        """)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Latti"));
 
-            verify(vendorService).save(any(VendorDTORequest.class));
-        }
+        verify(vendorService).save(any(VendorDTORequest.class));
+    }
 
-        @Test
-    void delete_shouldDeleteVendorAndReturnNoContent() throws Exception{
+    @Test
+    @WithMockUser(roles = "STAFF")
+    void softDelete_shouldReturn200OkAsStaff() throws Exception {
+        doNothing().when(vendorService).softDelete(1L);
 
-            doNothing().when(vendorService).delete(1L);
-        mockMvc.perform(delete("/vendors/delete-by-id/1"))
+        mockMvc.perform(delete("/vendors/soft-delete-by-id/1").with(csrf()))
+                .andExpect(status().isOk());
+
+        verify(vendorService).softDelete(1L);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void hardDelete_shouldReturn204NoContentAsAdmin() throws Exception {
+        doNothing().when(vendorService).hardDelete(1L);
+
+        mockMvc.perform(delete("/vendors/hard-delete-by-id/1").with(csrf()))
                 .andExpect(status().isNoContent());
-            verify(vendorService).delete(1L);
-        }
+
+        verify(vendorService).hardDelete(1L);
+    }
+
+    @Test
+    @WithMockUser(roles = "STAFF")
+    void hardDelete_shouldReturn403ForbiddenAsStaff() throws Exception {
+        mockMvc.perform(delete("/vendors/hard-delete-by-id/1").with(csrf()))
+                .andExpect(status().isForbidden());
+
+        verify(vendorService, never()).hardDelete(anyLong());
+    }
 }

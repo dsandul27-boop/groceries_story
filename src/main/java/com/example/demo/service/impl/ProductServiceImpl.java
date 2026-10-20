@@ -68,10 +68,8 @@ public class ProductServiceImpl implements ProductService {
         if (productList.isEmpty()) {
             throw new ResourceNotFoundException("No one product found");
         }
-        for (Product product : productList) {
-            productDTOResponseList.add(productMapper.toDTO(product));
-        }
-        return productDTOResponseList;
+
+        return activeProductList(productList);
     }
 
     @Override
@@ -80,7 +78,13 @@ public class ProductServiceImpl implements ProductService {
         if (optionalProduct.isEmpty()) {
             throw new ResourceNotFoundException("Product was not found");
         }
+
+        if (optionalProduct.get().getActiveStatus().equals(ActiveStatus.INACTIVE)){
+            throw new IsInactiveException("Not available");
+        }
+
         Long productSumQuantity = batchRepository.sumQuantityByProductId(productId);
+
         ProductDTOResponse productDTOResponse = productMapper.toDTO(optionalProduct.get());
         productDTOResponse.setQuantity(productSumQuantity);
         return productDTOResponse;
@@ -118,11 +122,30 @@ public class ProductServiceImpl implements ProductService {
         if (productList.isEmpty()){
             throw new ResourceNotFoundException("Product list is empty");
         }
-        List<ProductFilterDTOResponse> productFilterList = new ArrayList<>();
-        for (Product product:productList){
-            productFilterList.add(productMapper.toFilterDTO(product));
+
+        return activeProductFilterList(productList);
+    }
+
+    @Override
+    public List<ProductDTOResponse> activeProductList(List<Product> productList) {
+        List<ProductDTOResponse> activeDTOResponse = new ArrayList<>();
+        for (Product product: productList) {
+            if (product.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
+                activeDTOResponse.add(productMapper.toDTO(product));
+            }
         }
-        return productFilterList;
+        return activeDTOResponse;
+    }
+
+    @Override
+    public List<ProductFilterDTOResponse> activeProductFilterList(List<Product> productList) {
+        List<ProductFilterDTOResponse> activeDTOResponse = new ArrayList<>();
+        for (Product product: productList) {
+            if (product.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
+                activeDTOResponse.add(productMapper.toFilterDTO(product));
+            }
+        }
+        return activeDTOResponse;
     }
 
 }

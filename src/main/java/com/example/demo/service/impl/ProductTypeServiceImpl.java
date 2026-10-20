@@ -59,11 +59,8 @@ public class ProductTypeServiceImpl implements ProductTypeService {
         if (productTypeList.isEmpty()) {
             throw new ResourceNotFoundException("No product type found");
         }
-        List<ProductTypeDTOResponse> productTypeDTOResponseList = new ArrayList<>();
-        for (ProductType productType : productTypeList) {
-            productTypeDTOResponseList.add(productTypeMapper.toDTO(productType));
-        }
-        return productTypeDTOResponseList;
+
+        return activeProductTypeList(productTypeList);
     }
 
     @Override
@@ -71,6 +68,10 @@ public class ProductTypeServiceImpl implements ProductTypeService {
         Optional<ProductType> optionalProduct = productTypeRepository.findById(productTypeId);
         if (optionalProduct.isEmpty()) {
             throw new ResourceNotFoundException("Product types not found");
+        }
+
+        if (optionalProduct.get().getActiveStatus().equals(ActiveStatus.INACTIVE)){
+            throw new IsInactiveException("Not available");
         }
         return productTypeMapper.toDTO(optionalProduct.get());
     }
@@ -105,6 +106,17 @@ public class ProductTypeServiceImpl implements ProductTypeService {
     @Override
     public boolean existsByCategoryId(Long categoryId) {
         return productTypeRepository.existsByCategoryId(categoryId);
+    }
+
+    @Override
+    public List<ProductTypeDTOResponse> activeProductTypeList(List<ProductType> productTypeList) {
+        List<ProductTypeDTOResponse> activeDTOResponse = new ArrayList<>();
+        for (ProductType productType : productTypeList) {
+            if (productType.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
+                activeDTOResponse.add(productTypeMapper.toDTO(productType));
+            }
+        }
+        return activeDTOResponse;
     }
 
 

@@ -5,7 +5,6 @@ import com.example.demo.dto.response.BatchDTOResponse;
 import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Batch;
 import com.example.demo.entities.Product;
-import com.example.demo.exception.EntityInUseException;
 import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.BatchMapper;
@@ -57,14 +56,11 @@ public class BatchServiceImpl implements BatchService {
     @Override
     public List<BatchDTOResponse> getAll() {
         List<Batch> batchList = batchRepository.findAll();
-        List<BatchDTOResponse> batchDTOResponseList = new ArrayList<>();
+
         if (batchList.isEmpty()) {
             throw new ResourceNotFoundException("Batch not found");
         }
-        for (Batch batch : batchList) {
-            batchDTOResponseList.add(batchMapper.toDTO(batch));
-        }
-        return batchDTOResponseList;
+        return activeBatchList(batchList);
     }
 
     @Override
@@ -72,6 +68,10 @@ public class BatchServiceImpl implements BatchService {
         Optional<Batch> optionalBatch = batchRepository.findById(id);
         if (optionalBatch.isEmpty()) {
             throw new ResourceNotFoundException("Batch with id <" + id + "> was not found");
+        }
+
+        if (optionalBatch.get().getActiveStatus().equals(ActiveStatus.INACTIVE)){
+            throw new IsInactiveException("Not available");
         }
 
         return batchMapper.toDTO(optionalBatch.get());
@@ -87,7 +87,7 @@ public class BatchServiceImpl implements BatchService {
 
     @Override
     public void softDelete(Long batchId) {
-        Optional<Batch> optionalBatch= batchRepository.findById(batchId);
+        Optional<Batch> optionalBatch = batchRepository.findById(batchId);
         if (optionalBatch.isEmpty()) {
             throw new ResourceNotFoundException("Doesn't exist");
         }
@@ -97,6 +97,17 @@ public class BatchServiceImpl implements BatchService {
         }
         batch.setActiveStatus(ActiveStatus.INACTIVE);
         batchRepository.save(batch);
+    }
+
+    @Override
+    public List<BatchDTOResponse> activeBatchList(List<Batch> batchList) {
+        List<BatchDTOResponse> activeDTOResponse = new ArrayList<>();
+        for (Batch batch : batchList) {
+            if (batch.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
+                activeDTOResponse.add(batchMapper.toDTO(batch));
+            }
+        }
+        return activeDTOResponse;
     }
 
 }

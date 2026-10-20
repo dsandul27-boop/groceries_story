@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -18,10 +20,12 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@EnableMethodSecurity
 @WebMvcTest(CategoryController.class)
 public class CategoryControllerTest {
 
@@ -31,7 +35,7 @@ public class CategoryControllerTest {
     @MockitoBean
     private CategoryServiceImpl categoryService;
 
-    // Satisfies JwtAuthenticationFilter's dependency so the @WebMvcTest context loads.
+
     @MockitoBean
     private JwtUtil jwtUtil;
 
@@ -57,17 +61,17 @@ public class CategoryControllerTest {
         categoryDTOResponse.setId(1L);
         categoryDTOResponse.setCategoryName("Dairy");
         categoryDTOResponse.setDescription("milk");
-
     }
 
-
     @Test
-    void save_shouldReturn200() throws Exception{
+    @WithMockUser(roles = "STAFF")
+    void save_shouldReturn200() throws Exception {
 
         when(categoryService.save(categoryDTORequest)).thenReturn(categoryDTOResponse);
 
         mockMvc.perform(
                         post("/category/save-category")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                             {"categoryName":"Dairy",
@@ -81,7 +85,8 @@ public class CategoryControllerTest {
     }
 
     @Test
-    void getById_shouldReturn202() throws  Exception{
+    @WithMockUser(roles = "CUSTOMER")
+    void getById_shouldReturn202() throws Exception {
 
         when(categoryService.getById(categoryId)).thenReturn(categoryDTOResponse);
 
@@ -94,7 +99,8 @@ public class CategoryControllerTest {
     }
 
     @Test
-    void getAll_shouldReturnAccepted() throws  Exception{
+    @WithMockUser(roles = "CUSTOMER")
+    void getAll_shouldReturnAccepted() throws Exception {
 
         List<CategoryDTOResponse> categoryDTOResponseList = new ArrayList<>();
         categoryDTOResponseList.add(categoryDTOResponse);
@@ -110,11 +116,33 @@ public class CategoryControllerTest {
     }
 
     @Test
-    void delete_shouldReturnNoContent() throws  Exception {
-        doNothing().when(categoryService).delete(categoryId);
+    @WithMockUser(roles = "STAFF")
+    void softDelete_shouldReturn200OkAsStaff() throws Exception {
+        doNothing().when(categoryService).softDelete(categoryId);
 
-        mockMvc.perform(delete("/category/delete-category/1")).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/category/soft-delete-category/1").with(csrf()))
+                .andExpect(status().isOk());
 
-        verify(categoryService).delete(categoryId);
+        verify(categoryService).softDelete(categoryId);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void hardDelete_shouldReturn204NoContentAsAdmin() throws Exception {
+        doNothing().when(categoryService).hardDelete(categoryId);
+
+        mockMvc.perform(delete("/category/hard-delete-category/1").with(csrf()))
+                .andExpect(status().isNoContent());
+
+        verify(categoryService).hardDelete(categoryId);
+    }
+
+    @Test
+    @WithMockUser(roles = "STAFF")
+    void hardDelete_shouldReturn403ForbiddenAsStaff() throws Exception {
+        mockMvc.perform(delete("/category/hard-delete-category/1").with(csrf()))
+                .andExpect(status().isForbidden());
+
+        verify(categoryService, never()).hardDelete(anyLong());
     }
 }

@@ -35,9 +35,7 @@ public class CategoryController {
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'ADMIN')")
     @GetMapping("/get-category-by-id/{id}")
-    public ResponseEntity<CategoryDTOResponse> getById(
-            @PathVariable
-            @Positive(message = "ID must be positive") Long id) {
+    public ResponseEntity<CategoryDTOResponse> getById(@PathVariable @Positive(message = "ID must be positive") Long id) {
         CategoryDTOResponse categoryDTOResponse = categoryService.getById(id);
         return new ResponseEntity<>(categoryDTOResponse, HttpStatus.ACCEPTED);
     }

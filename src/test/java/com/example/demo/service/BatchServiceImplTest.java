@@ -5,6 +5,7 @@ import com.example.demo.dto.response.BatchDTOResponse;
 import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Batch;
 import com.example.demo.entities.Product;
+import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.BatchMapper;
 import com.example.demo.repository.BatchRepository;
@@ -199,13 +200,82 @@ public class BatchServiceImplTest {
         verifyNoInteractions(batchMapper);
     }
 
+    @Test
+    void getById_shouldThrowIsInactiveException_whenBatchIsInactive() {
+        savedBatch.setActiveStatus(ActiveStatus.INACTIVE);
+        when(batchRepository.findById(batchId)).thenReturn(Optional.of(savedBatch));
+
+        IsInactiveException exception = assertThrows(IsInactiveException.class,
+                () -> batchService.getById(batchId));
+
+        assertEquals("Not available", exception.getMessage());
+        verify(batchRepository).findById(batchId);
+        verifyNoInteractions(batchMapper);
+    }
+
     //______________________________________________________________________________________________________________________
+    // --- SOFT DELETE TESTS ---
 
     @Test
-    void delete_shouldDeleteBatchById() {
+    void softDelete_shouldFlipStatusToInactive() {
+        when(batchRepository.findById(batchId)).thenReturn(Optional.of(savedBatch));
 
-        batchService.delete(batchId);
+        batchService.softDelete(batchId);
 
+        assertEquals(ActiveStatus.INACTIVE, savedBatch.getActiveStatus());
+        verify(batchRepository).findById(batchId);
+        verify(batchRepository).save(savedBatch);
+    }
+
+    @Test
+    void softDelete_shouldThrowResourceNotFoundException_whenDoesNotExist() {
+        when(batchRepository.findById(batchId)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> batchService.softDelete(batchId));
+
+        assertEquals("Doesn't exist", exception.getMessage());
+        verify(batchRepository).findById(batchId);
+        verify(batchRepository, never()).save(any());
+    }
+
+    @Test
+    void softDelete_shouldThrowIsInactiveException_whenAlreadyInactive() {
+        savedBatch.setActiveStatus(ActiveStatus.INACTIVE);
+        when(batchRepository.findById(batchId)).thenReturn(Optional.of(savedBatch));
+
+        IsInactiveException exception = assertThrows(IsInactiveException.class,
+                () -> batchService.softDelete(batchId));
+
+        assertEquals("Batch is already inactive", exception.getMessage());
+        verify(batchRepository).findById(batchId);
+        verify(batchRepository, never()).save(any());
+    }
+
+    // --- HARD DELETE TESTS ---
+
+    @Test
+    void hardDelete_shouldPhysicallyRemoveRow_whenExists() {
+        when(batchRepository.existsById(batchId)).thenReturn(true);
+
+        batchService.hardDelete(batchId);
+
+        verify(batchRepository).existsById(batchId);
         verify(batchRepository).deleteById(batchId);
     }
+
+    @Test
+    void hardDelete_shouldThrowResourceNotFoundException_whenDoesNotExist() {
+        when(batchRepository.existsById(batchId)).thenReturn(false);
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> batchService.hardDelete(batchId));
+
+        assertEquals("Batch already doesn't exist", exception.getMessage());
+
+        verify(batchRepository).existsById(batchId);
+        verify(batchRepository, never()).deleteById(anyLong());
+    }
+
 }
+

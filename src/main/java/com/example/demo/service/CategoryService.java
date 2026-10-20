@@ -23,4 +23,6 @@ public interface CategoryService {
 
     List<Category> activeCategory(List<Category> categoryList);
 
+    List<CategoryFilterDTOResponse> activeCategoryFilterList(List<Category> categoryList);
+
 }

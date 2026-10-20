@@ -7,6 +7,7 @@ import com.example.demo.entities.Product;
 import com.example.demo.entities.ProductType;
 import com.example.demo.entities.Vendor;
 import com.example.demo.exception.EntityInUseException;
+import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.ProductMapper;
 import com.example.demo.repository.BatchRepository;
@@ -90,18 +91,20 @@ public class ProductServiceImplTest {
         savedProduct.setVendor(vendor);
         savedProduct.setProductType(productType);
         savedProduct.setPrice(new BigDecimal("10"));
-        savedProduct.setActiveStatus(ActiveStatus.INACTIVE);
+        savedProduct.setActiveStatus(ActiveStatus.ACTIVE);
 
         productDTOResponse = new ProductDTOResponse();
         productDTOResponse.setId(productId);
         productDTOResponse.setVendorId(vendorId);
         productDTOResponse.setProductTypeId(productTypeId);
         productDTOResponse.setPrice(new BigDecimal("10"));
-        productDTOResponse.setActiveStatus(ActiveStatus.INACTIVE);
+        productDTOResponse.setActiveStatus(ActiveStatus.ACTIVE);
     }
 
     @Test
     void save_shouldSaveProductAndReturnProductDTOResponse() {
+        savedProduct.setActiveStatus(ActiveStatus.INACTIVE);
+        productDTOResponse.setActiveStatus(ActiveStatus.INACTIVE);
 
         when(vendorRepository.findById(vendorId)).thenReturn(Optional.of(vendor));
         when(productTypeRepository.findById(productTypeId)).thenReturn(Optional.of(productType));
@@ -199,6 +202,7 @@ public class ProductServiceImplTest {
         assertEquals(vendorId, result.getVendorId());
         assertEquals(50L, result.getQuantity());
         verify(productRepository).findById(productId);
+        verify(batchRepository).sumQuantityByProductId(productId);
         verify(productMapper).toDTO(savedProduct);
     }
 
@@ -212,50 +216,85 @@ public class ProductServiceImplTest {
 
         assertEquals("Product was not found", exception.getMessage());
         verify(productRepository).findById(productId);
-        verifyNoInteractions(productMapper);
+        verifyNoInteractions(productMapper, batchRepository);
+    }
+
+    @Test
+    void getById_shouldThrowIsInactiveException_whenProductIsInactive() {
+        savedProduct.setActiveStatus(ActiveStatus.INACTIVE);
+        when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
+
+        IsInactiveException exception = assertThrows(IsInactiveException.class,
+                () -> productService.getById(productId));
+
+        assertEquals("Not available", exception.getMessage());
+        verify(productRepository).findById(productId);
+        verifyNoInteractions(productMapper, batchRepository);
     }
 
     //______________________________________________________________________________________________________________________
+    // --- SOFT DELETE TESTS ---
 
     @Test
-    void delete_shouldDeleteProduct() {
+    void softDelete_shouldFlipStatusToInactive() {
+        when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
 
+        productService.softDelete(productId);
+
+        assertEquals(ActiveStatus.INACTIVE, savedProduct.getActiveStatus());
+        verify(productRepository).findById(productId);
+        verify(productRepository).save(savedProduct);
+    }
+
+    @Test
+    void softDelete_shouldThrowResourceNotFoundException_whenDoesNotExist() {
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> productService.softDelete(productId));
+        assertEquals("Doesn't exist", exception.getMessage());
+        verify(productRepository).findById(productId);
+        verify(productRepository, never()).save(any());
+    }
+    @Test
+    void softDelete_shouldThrowIsInactiveException_whenAlreadyInactive() {
+        savedProduct.setActiveStatus(ActiveStatus.INACTIVE);
+        when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
+        IsInactiveException exception = assertThrows(IsInactiveException.class,
+                () -> productService.softDelete(productId));
+        assertEquals("Product is already inactive", exception.getMessage());
+        verify(productRepository).findById(productId);
+        verify(productRepository, never()).save(any());
+    }
+    // --- HARD DELETE TESTS ---
+    @Test
+    void hardDelete_shouldPhysicallyRemoveRow_whenExistsAndNoDependencies() {
         when(productRepository.existsById(productId)).thenReturn(true);
         when(batchRepository.existsByProductId(productId)).thenReturn(false);
-
-        productService.delete(productId);
-
+        productService.hardDelete(productId);
         verify(productRepository).existsById(productId);
         verify(batchRepository).existsByProductId(productId);
         verify(productRepository).deleteById(productId);
     }
-
     @Test
-    void delete_shouldThrowResourceNotFoundException_whenProductDoesNotExist() {
-
+    void hardDelete_shouldThrowResourceNotFoundException_whenDoesNotExist() {
         when(productRepository.existsById(productId)).thenReturn(false);
-
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> productService.delete(productId));
-
+                () -> productService.hardDelete(productId));
         assertEquals("Product already doesn't exist", exception.getMessage());
         verify(productRepository).existsById(productId);
         verifyNoInteractions(batchRepository);
-        verify(productRepository, never()).deleteById(productId);
+        verify(productRepository, never()).deleteById(anyLong());
     }
-
     @Test
-    void delete_shouldThrowEntityInUseException_whenBatchExists() {
-
+    void hardDelete_shouldThrowEntityInUseException_whenBatchDependenciesExist() {
         when(productRepository.existsById(productId)).thenReturn(true);
         when(batchRepository.existsByProductId(productId)).thenReturn(true);
-
         EntityInUseException exception = assertThrows(EntityInUseException.class,
-                () -> productService.delete(productId));
-
+                () -> productService.hardDelete(productId));
         assertEquals("Exist batch dependencies", exception.getMessage());
         verify(productRepository).existsById(productId);
         verify(batchRepository).existsByProductId(productId);
-        verify(productRepository, never()).deleteById(productId);
+        verify(productRepository, never()).deleteById(anyLong());
     }
 }

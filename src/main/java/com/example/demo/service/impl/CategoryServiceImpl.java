@@ -34,6 +34,13 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    public CategoryDTOResponse save(CategoryDTORequest categoryDTORequest) {
+        Category category = categoryMapper.toEntity(categoryDTORequest);
+        category.setActiveStatus(ActiveStatus.ACTIVE);
+        return categoryMapper.toDTO(categoryRepository.save(category));
+    }
+
+    @Override
     public List<CategoryDTOResponse> getAll() {
         List<Category> categoryList = categoryRepository.findAll();
         if (categoryList.isEmpty()) {
@@ -59,12 +66,7 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryMapper.toDTO(optionalCategory.get());
     }
 
-    @Override
-    public CategoryDTOResponse save(CategoryDTORequest categoryDTORequest) {
-        Category category = categoryMapper.toEntity(categoryDTORequest);
-        category.setActiveStatus(ActiveStatus.ACTIVE);
-        return categoryMapper.toDTO(categoryRepository.save(category));
-    }
+
 
     @Override
     public void hardDelete(Long categoryId) {
@@ -101,14 +103,7 @@ public class CategoryServiceImpl implements CategoryService {
             throw new ResourceNotFoundException("No categories found");
         }
 
-        List<Category> activeCategory = activeCategory(categoryList);
-
-        List<CategoryFilterDTOResponse> resultList = new ArrayList<>();
-
-        for (Category category : activeCategory) {
-            resultList.add(categoryMapper.categoryFilterDTOResponse(category));
-        }
-        return resultList;
+        return activeCategoryFilterList(categoryList);
     }
 
     @Override
@@ -117,6 +112,17 @@ public class CategoryServiceImpl implements CategoryService {
         for (Category category:categoryList){
             if (category.getActiveStatus().equals(ActiveStatus.ACTIVE)){
                 activeCategory.add(category);
+            }
+        }
+        return activeCategory;
+    }
+
+    @Override
+    public List<CategoryFilterDTOResponse> activeCategoryFilterList(List<Category> categoryList) {
+        List<CategoryFilterDTOResponse> activeCategory = new ArrayList<>();
+        for (Category category:categoryList){
+            if (category.getActiveStatus().equals(ActiveStatus.ACTIVE)){
+                activeCategory.add(categoryMapper.categoryFilterDTOResponse(category));
             }
         }
         return activeCategory;
