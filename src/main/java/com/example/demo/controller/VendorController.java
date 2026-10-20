@@ -44,7 +44,7 @@ public class VendorController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/hard-delete-by-id/{id}")
+    @DeleteMapping("/hard-delete/{id}")
     public ResponseEntity hardDelete(@Valid @PathVariable @Positive(message = "Must be positive") Long id){
         vendorService.hardDelete(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -52,9 +52,9 @@ public class VendorController {
 
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    @DeleteMapping("/soft-delete-by-id/{id}")
+    @DeleteMapping("/soft-delete/{id}")
     public ResponseEntity softDelete(@Valid @PathVariable @Positive(message = "Must be positive") Long id){
         vendorService.softDelete(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

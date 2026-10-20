@@ -60,12 +60,9 @@ public class CategoryServiceImpl implements CategoryService {
         if (optionalCategory.isEmpty()) {
             throw new ResourceNotFoundException("Category not found by Id");
         }
-        if (optionalCategory.get().getActiveStatus().equals(ActiveStatus.INACTIVE)){
-            throw new IsInactiveException("Category is not available");
-        }
+
         return categoryMapper.toDTO(optionalCategory.get());
     }
-
 
 
     @Override
@@ -106,22 +103,20 @@ public class CategoryServiceImpl implements CategoryService {
         return activeCategoryFilterList(categoryList);
     }
 
-    @Override
-    public List<Category> activeCategory(List<Category> categoryList) {
+    private List<Category> activeCategory(List<Category> categoryList) {
         List<Category> activeCategory = new ArrayList<>();
-        for (Category category:categoryList){
-            if (category.getActiveStatus().equals(ActiveStatus.ACTIVE)){
+        for (Category category : categoryList) {
+            if (category.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
                 activeCategory.add(category);
             }
         }
         return activeCategory;
     }
 
-    @Override
-    public List<CategoryFilterDTOResponse> activeCategoryFilterList(List<Category> categoryList) {
+    private List<CategoryFilterDTOResponse> activeCategoryFilterList(List<Category> categoryList) {
         List<CategoryFilterDTOResponse> activeCategory = new ArrayList<>();
-        for (Category category:categoryList){
-            if (category.getActiveStatus().equals(ActiveStatus.ACTIVE)){
+        for (Category category : categoryList) {
+            if (category.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
                 activeCategory.add(categoryMapper.categoryFilterDTOResponse(category));
             }
         }

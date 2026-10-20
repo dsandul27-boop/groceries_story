@@ -152,22 +152,6 @@ public class VendorServiceImplTest {
         verifyNoInteractions(vendorMapper);
     }
 
-    @Test
-    void getById_shouldThrowIsInactiveException_whenVendorIsInactive() {
-        Long vendorId = 1L;
-        vendor.setActiveStatus(ActiveStatus.INACTIVE);
-        when(vendorRepository.findById(vendorId)).thenReturn(Optional.of(vendor));
-
-        IsInactiveException exception = assertThrows(
-                IsInactiveException.class,
-                () -> vendorService.getById(vendorId)
-        );
-
-        assertEquals("Not available", exception.getMessage());
-        verify(vendorRepository).findById(vendorId);
-        verifyNoInteractions(vendorMapper);
-    }
-
     //______________________________________________________________________________________________________________________
     @Test
     void getAll_shouldReturnAllVendors() {
@@ -200,6 +184,25 @@ public class VendorServiceImplTest {
         assertEquals("Vendor not found", exception.getMessage());
         verify(vendorRepository).findAll();
         verifyNoInteractions(vendorMapper);
+    }
+
+    @Test
+    void getAll_shouldExcludeInactiveVendors_AC3() {
+        Vendor activeVendor = new Vendor();
+        activeVendor.setId(1L);
+        activeVendor.setActiveStatus(ActiveStatus.ACTIVE);
+
+        Vendor inactiveVendor = new Vendor();
+        inactiveVendor.setId(2L);
+        inactiveVendor.setActiveStatus(ActiveStatus.INACTIVE);
+
+        when(vendorRepository.findAll()).thenReturn(List.of(activeVendor, inactiveVendor));
+        when(vendorMapper.toDTO(activeVendor)).thenReturn(new VendorDTOResponse());
+
+        List<VendorDTOResponse> result = vendorService.getAll();
+
+        assertEquals(1, result.size());
+        verify(vendorMapper, never()).toDTO(inactiveVendor);
     }
 
     //_________________________________________________________________________________________________________________

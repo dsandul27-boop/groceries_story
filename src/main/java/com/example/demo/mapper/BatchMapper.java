@@ -21,7 +21,7 @@ public class BatchMapper {
         return batchDTOResponse;
     }
 
-    public Batch toEntity (BatchDTORequest batchDTORequest) {
+    public Batch toEntity(BatchDTORequest batchDTORequest) {
         Batch batch = new Batch();
         batch.setQuantity(batchDTORequest.getQuantity());
         batch.setPurchasePrice(batchDTORequest.getPurchasePrice());

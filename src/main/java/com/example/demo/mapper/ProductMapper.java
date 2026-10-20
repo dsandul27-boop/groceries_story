@@ -65,9 +65,3 @@ public class ProductMapper {
         return productFilter;
     }
 }
-//private Long id;
-//private Long vendorId;
-//private Long productTypeId;
-//private BigDecimal price;
-//private Boolean active;
-//private LocalDateTime createdAt;

@@ -48,7 +48,7 @@ public class CategoryServiceImplTest {
     private Long categoryId = 1L;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
 
         categoryId = 1L;
 
@@ -77,7 +77,7 @@ public class CategoryServiceImplTest {
     }
 
     @Test
-    void save_shouldSaveCategoryAndReturnCategoryDTOResponse(){
+    void save_shouldSaveCategoryAndReturnCategoryDTOResponse() {
 
         when(categoryMapper.toEntity(categoryDTORequest)).thenReturn(category);
         when(categoryRepository.save(category)).thenReturn(category);
@@ -96,7 +96,7 @@ public class CategoryServiceImplTest {
 
     //______________________________________________________________________________________________________________________
     @Test
-    void getAll_shouldReturnAllCategory(){
+    void getAll_shouldReturnAllCategory() {
         List<Category> categoryList = new ArrayList<>();
         categoryList.add(category);
 
@@ -114,11 +114,34 @@ public class CategoryServiceImplTest {
     }
 
     @Test
-    void getAll_shouldResourceNotFoundException(){
+    void getAll_shouldExcludeInactiveCategories_AC3() {
+
+        Category activeCategory = new Category();
+        activeCategory.setId(1L);
+        activeCategory.setActiveStatus(ActiveStatus.ACTIVE);
+
+        Category inactiveCategory = new Category();
+        inactiveCategory.setId(2L);
+        inactiveCategory.setActiveStatus(ActiveStatus.INACTIVE);
+
+        List<Category> repositoryList = List.of(activeCategory, inactiveCategory);
+
+        when(categoryRepository.findAll()).thenReturn(repositoryList);
+        when(categoryMapper.toDTO(activeCategory)).thenReturn(new CategoryDTOResponse());
+
+        List<CategoryDTOResponse> result = categoryService.getAll();
+
+        assertEquals(1, result.size(), "Lista trebuie să conțină doar categoriile active");
+        verify(categoryMapper, times(1)).toDTO(activeCategory);
+        verify(categoryMapper, never()).toDTO(inactiveCategory);
+    }
+
+    @Test
+    void getAll_shouldResourceNotFoundException() {
         List<Category> categoryList = new ArrayList<>();
 
         when(categoryRepository.findAll()).thenReturn(categoryList);
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, ()-> categoryService.getAll());
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> categoryService.getAll());
 
         assertEquals("No one Category found", exception.getMessage());
         verify(categoryRepository).findAll();
@@ -128,38 +151,25 @@ public class CategoryServiceImplTest {
     //__________________________________________________________________________________________________________________
 
     @Test
-    void getById_shouldReturnCategoryById(){
+    void getById_shouldReturnCategoryById() {
         Optional<Category> optionalCategory = Optional.of(category);
         when(categoryRepository.findById(categoryId)).thenReturn(optionalCategory);
         when(categoryMapper.toDTO(optionalCategory.get())).thenReturn(categoryDTOResponse);
 
         CategoryDTOResponse result = categoryService.getById(categoryId);
-        assertEquals(1L, result.getId() );
+        assertEquals(1L, result.getId());
         assertEquals("Dairy", result.getCategoryName());
         verify(categoryRepository).findById(categoryId);
         verify(categoryMapper).toDTO(optionalCategory.get());
     }
 
     @Test
-    void getById_shouldResourceNotFoundException_WhenCategoryIsEmpty(){
+    void getById_shouldResourceNotFoundException_WhenCategoryIsEmpty() {
         Optional<Category> optionalCategory = Optional.empty();
         when(categoryRepository.findById(categoryId)).thenReturn(optionalCategory);
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, ()->  categoryService.getById(categoryId));
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> categoryService.getById(categoryId));
 
         assertEquals("Category not found by Id", exception.getMessage());
-        verify(categoryRepository).findById(categoryId);
-        verifyNoInteractions(categoryMapper);
-    }
-
-    @Test
-    void getById_shouldThrowIsInactiveException_WhenCategoryIsInactive(){
-        category.setActiveStatus(ActiveStatus.INACTIVE);
-        Optional<Category> optionalCategory = Optional.of(category);
-        when(categoryRepository.findById(categoryId)).thenReturn(optionalCategory);
-
-        IsInactiveException exception = assertThrows(IsInactiveException.class, () -> categoryService.getById(categoryId));
-
-        assertEquals("Category is not available", exception.getMessage());
         verify(categoryRepository).findById(categoryId);
         verifyNoInteractions(categoryMapper);
     }
@@ -168,7 +178,7 @@ public class CategoryServiceImplTest {
     // --- SOFT DELETE TESTS ---
 
     @Test
-    void softDelete_shouldFlipStatusToInactive(){
+    void softDelete_shouldFlipStatusToInactive() {
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
 
         categoryService.softDelete(categoryId);
@@ -179,7 +189,7 @@ public class CategoryServiceImplTest {
     }
 
     @Test
-    void softDelete_shouldThrowResourceNotFoundException(){
+    void softDelete_shouldThrowResourceNotFoundException() {
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> categoryService.softDelete(categoryId));
@@ -190,7 +200,7 @@ public class CategoryServiceImplTest {
     }
 
     @Test
-    void softDelete_shouldThrowIsInactiveException_WhenAlreadyInactive(){
+    void softDelete_shouldThrowIsInactiveException_WhenAlreadyInactive() {
         category.setActiveStatus(ActiveStatus.INACTIVE);
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
 
@@ -204,7 +214,7 @@ public class CategoryServiceImplTest {
     // --- HARD DELETE TESTS ---
 
     @Test
-    void hardDelete_shouldDeleteCategory(){
+    void hardDelete_shouldDeleteCategory() {
         when(categoryRepository.existsById(categoryId)).thenReturn(true);
         when(productTypeService.existsByCategoryId(categoryId)).thenReturn(false);
 
@@ -216,9 +226,9 @@ public class CategoryServiceImplTest {
     }
 
     @Test
-    void hardDelete_shouldResourceNotFoundException(){
+    void hardDelete_shouldResourceNotFoundException() {
         when(categoryRepository.existsById(categoryId)).thenReturn(false);
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, ()-> categoryService.hardDelete(categoryId));
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> categoryService.hardDelete(categoryId));
 
         assertEquals("Already doesn't exist", exception.getMessage());
         verify(categoryRepository).existsById(categoryId);
@@ -227,10 +237,10 @@ public class CategoryServiceImplTest {
     }
 
     @Test
-    void hardDelete_shouldEntityInUseException(){
+    void hardDelete_shouldEntityInUseException() {
         when(categoryRepository.existsById(categoryId)).thenReturn(true);
         when(productTypeService.existsByCategoryId(categoryId)).thenReturn(true);
-        EntityInUseException exception = assertThrows(EntityInUseException.class, ()-> categoryService.hardDelete(categoryId));
+        EntityInUseException exception = assertThrows(EntityInUseException.class, () -> categoryService.hardDelete(categoryId));
 
         assertEquals("Product type dependencies exist", exception.getMessage());
         verify(categoryRepository).existsById(categoryId);

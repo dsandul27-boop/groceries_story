@@ -172,6 +172,26 @@ public class BatchServiceImplTest {
         verifyNoInteractions(batchMapper);
     }
 
+    @Test
+    void getAll_shouldExcludeInactiveBatches_AC3() {
+        Batch activeBatch = new Batch();
+        activeBatch.setId(1L);
+        activeBatch.setActiveStatus(ActiveStatus.ACTIVE);
+
+        Batch inactiveBatch = new Batch();
+        inactiveBatch.setId(2L);
+        inactiveBatch.setActiveStatus(ActiveStatus.INACTIVE);
+
+        when(batchRepository.findAll()).thenReturn(List.of(activeBatch, inactiveBatch));
+        when(batchMapper.toDTO(activeBatch)).thenReturn(new BatchDTOResponse());
+
+        List<BatchDTOResponse> result = batchService.getAll();
+
+        assertEquals(1, result.size());
+        verify(batchMapper, never()).toDTO(inactiveBatch);
+    }
+
+
     //______________________________________________________________________________________________________________________
 
     @Test
@@ -196,19 +216,6 @@ public class BatchServiceImplTest {
                 () -> batchService.getById(batchId));
 
         assertEquals("Batch with id <" + batchId + "> was not found", exception.getMessage());
-        verify(batchRepository).findById(batchId);
-        verifyNoInteractions(batchMapper);
-    }
-
-    @Test
-    void getById_shouldThrowIsInactiveException_whenBatchIsInactive() {
-        savedBatch.setActiveStatus(ActiveStatus.INACTIVE);
-        when(batchRepository.findById(batchId)).thenReturn(Optional.of(savedBatch));
-
-        IsInactiveException exception = assertThrows(IsInactiveException.class,
-                () -> batchService.getById(batchId));
-
-        assertEquals("Not available", exception.getMessage());
         verify(batchRepository).findById(batchId);
         verifyNoInteractions(batchMapper);
     }

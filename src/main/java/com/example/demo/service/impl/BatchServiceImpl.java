@@ -70,10 +70,6 @@ public class BatchServiceImpl implements BatchService {
             throw new ResourceNotFoundException("Batch with id <" + id + "> was not found");
         }
 
-        if (optionalBatch.get().getActiveStatus().equals(ActiveStatus.INACTIVE)){
-            throw new IsInactiveException("Not available");
-        }
-
         return batchMapper.toDTO(optionalBatch.get());
     }
 
@@ -99,8 +95,7 @@ public class BatchServiceImpl implements BatchService {
         batchRepository.save(batch);
     }
 
-    @Override
-    public List<BatchDTOResponse> activeBatchList(List<Batch> batchList) {
+    private List<BatchDTOResponse> activeBatchList(List<Batch> batchList) {
         List<BatchDTOResponse> activeDTOResponse = new ArrayList<>();
         for (Batch batch : batchList) {
             if (batch.getActiveStatus().equals(ActiveStatus.ACTIVE)) {

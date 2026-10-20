@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.request.ProductDTORequest;
 import com.example.demo.dto.response.ProductDTOResponse;
+import com.example.demo.dto.response.ProductFilterDTOResponse;
 import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Product;
 import com.example.demo.entities.ProductType;
@@ -175,6 +176,44 @@ public class ProductServiceImplTest {
     }
 
     @Test
+    void getAll_shouldExcludeInactiveProducts_AC3() {
+        Product activeProd = new Product();
+        activeProd.setId(1L);
+        activeProd.setActiveStatus(ActiveStatus.ACTIVE);
+
+        Product inactiveProd = new Product();
+        inactiveProd.setId(2L);
+        inactiveProd.setActiveStatus(ActiveStatus.INACTIVE);
+
+        when(productRepository.findAll()).thenReturn(List.of(activeProd, inactiveProd));
+        when(productMapper.toDTO(activeProd)).thenReturn(new ProductDTOResponse());
+
+        List<ProductDTOResponse> result = productService.getAll();
+
+        assertEquals(1, result.size());
+        verify(productMapper, never()).toDTO(inactiveProd);
+    }
+
+    @Test
+    void getProductFilter_shouldExcludeInactiveProducts_AC3() {
+        Product activeProd = new Product();
+        activeProd.setId(1L);
+        activeProd.setActiveStatus(ActiveStatus.ACTIVE);
+
+        Product inactiveProd = new Product();
+        inactiveProd.setId(2L);
+        inactiveProd.setActiveStatus(ActiveStatus.INACTIVE);
+
+        when(productRepository.findAll()).thenReturn(List.of(activeProd, inactiveProd));
+        when(productMapper.toFilterDTO(activeProd)).thenReturn(new ProductFilterDTOResponse());
+
+        List<ProductFilterDTOResponse> result = productService.getProductFilter();
+
+        assertEquals(1, result.size());
+        verify(productMapper, never()).toFilterDTO(inactiveProd);
+    }
+
+    @Test
     void getAll_shouldThrowResourceNotFoundException_whenNoProductsExist() {
 
         when(productRepository.findAll()).thenReturn(new ArrayList<>());
@@ -219,19 +258,6 @@ public class ProductServiceImplTest {
         verifyNoInteractions(productMapper, batchRepository);
     }
 
-    @Test
-    void getById_shouldThrowIsInactiveException_whenProductIsInactive() {
-        savedProduct.setActiveStatus(ActiveStatus.INACTIVE);
-        when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
-
-        IsInactiveException exception = assertThrows(IsInactiveException.class,
-                () -> productService.getById(productId));
-
-        assertEquals("Not available", exception.getMessage());
-        verify(productRepository).findById(productId);
-        verifyNoInteractions(productMapper, batchRepository);
-    }
-
     //______________________________________________________________________________________________________________________
     // --- SOFT DELETE TESTS ---
 
@@ -256,6 +282,7 @@ public class ProductServiceImplTest {
         verify(productRepository).findById(productId);
         verify(productRepository, never()).save(any());
     }
+
     @Test
     void softDelete_shouldThrowIsInactiveException_whenAlreadyInactive() {
         savedProduct.setActiveStatus(ActiveStatus.INACTIVE);
@@ -266,6 +293,7 @@ public class ProductServiceImplTest {
         verify(productRepository).findById(productId);
         verify(productRepository, never()).save(any());
     }
+
     // --- HARD DELETE TESTS ---
     @Test
     void hardDelete_shouldPhysicallyRemoveRow_whenExistsAndNoDependencies() {
@@ -276,6 +304,7 @@ public class ProductServiceImplTest {
         verify(batchRepository).existsByProductId(productId);
         verify(productRepository).deleteById(productId);
     }
+
     @Test
     void hardDelete_shouldThrowResourceNotFoundException_whenDoesNotExist() {
         when(productRepository.existsById(productId)).thenReturn(false);
@@ -286,6 +315,7 @@ public class ProductServiceImplTest {
         verifyNoInteractions(batchRepository);
         verify(productRepository, never()).deleteById(anyLong());
     }
+
     @Test
     void hardDelete_shouldThrowEntityInUseException_whenBatchDependenciesExist() {
         when(productRepository.existsById(productId)).thenReturn(true);

@@ -49,7 +49,7 @@ public class CategoryController {
 
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/hard-delete-category/{categoryId}")
+    @DeleteMapping("/hard-delete/{categoryId}")
     public ResponseEntity hardDelete(@PathVariable @Positive(message = "ID must be positive") Long categoryId) {
         categoryService.hardDelete(categoryId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -57,10 +57,10 @@ public class CategoryController {
 
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    @DeleteMapping("/soft-delete-category/{categoryId}")
+    @DeleteMapping("/soft-delete/{categoryId}")
     public ResponseEntity softDelete(@PathVariable @Positive(message = "ID must be positive") Long categoryId) {
         categoryService.softDelete(categoryId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 

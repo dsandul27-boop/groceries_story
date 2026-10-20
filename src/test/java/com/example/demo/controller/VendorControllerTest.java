@@ -90,10 +90,10 @@ public class VendorControllerTest {
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                        {
-                            "name": "Latti"
-                        }
-                        """)
+                                        {
+                                            "name": "Latti"
+                                        }
+                                        """)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
@@ -107,8 +107,8 @@ public class VendorControllerTest {
     void softDelete_shouldReturn200OkAsStaff() throws Exception {
         doNothing().when(vendorService).softDelete(1L);
 
-        mockMvc.perform(delete("/vendors/soft-delete-by-id/1").with(csrf()))
-                .andExpect(status().isOk());
+        mockMvc.perform(delete("/vendors/soft-delete/1").with(csrf()))
+                .andExpect(status().isNoContent());
 
         verify(vendorService).softDelete(1L);
     }
@@ -118,7 +118,7 @@ public class VendorControllerTest {
     void hardDelete_shouldReturn204NoContentAsAdmin() throws Exception {
         doNothing().when(vendorService).hardDelete(1L);
 
-        mockMvc.perform(delete("/vendors/hard-delete-by-id/1").with(csrf()))
+        mockMvc.perform(delete("/vendors/hard-delete/1").with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(vendorService).hardDelete(1L);
@@ -127,7 +127,7 @@ public class VendorControllerTest {
     @Test
     @WithMockUser(roles = "STAFF")
     void hardDelete_shouldReturn403ForbiddenAsStaff() throws Exception {
-        mockMvc.perform(delete("/vendors/hard-delete-by-id/1").with(csrf()))
+        mockMvc.perform(delete("/vendors/hard-delete/1").with(csrf()))
                 .andExpect(status().isForbidden());
 
         verify(vendorService, never()).hardDelete(anyLong());

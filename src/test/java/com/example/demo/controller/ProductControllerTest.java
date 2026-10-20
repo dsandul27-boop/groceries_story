@@ -72,10 +72,10 @@ public class ProductControllerTest {
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                            {"vendorId":1,
-                            "productTypeId":1,
-                            "price":10}
-                            """)
+                                        {"vendorId":1,
+                                        "productTypeId":1,
+                                        "price":10}
+                                        """)
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.vendorId").value(1))
@@ -123,8 +123,8 @@ public class ProductControllerTest {
     void softDelete_shouldReturn200OkAsStaff() throws Exception {
         doNothing().when(productService).softDelete(productId);
 
-        mockMvc.perform(delete("/product/soft-delete-by-id/1").with(csrf()))
-                .andExpect(status().isOk());
+        mockMvc.perform(delete("/product/soft-delete/1").with(csrf()))
+                .andExpect(status().isNoContent());
 
         verify(productService).softDelete(productId);
     }
@@ -134,7 +134,7 @@ public class ProductControllerTest {
     void hardDelete_shouldReturn204NoContentAsAdmin() throws Exception {
         doNothing().when(productService).hardDelete(productId);
 
-        mockMvc.perform(delete("/product/hard-delete-by-id/1").with(csrf()))
+        mockMvc.perform(delete("/product/hard-delete/1").with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(productService).hardDelete(productId);
@@ -144,7 +144,7 @@ public class ProductControllerTest {
     @WithMockUser(roles = "STAFF")
     void hardDelete_shouldReturn403ForbiddenAsStaff() throws Exception {
 
-        mockMvc.perform(delete("/product/hard-delete-by-id/1").with(csrf()))
+        mockMvc.perform(delete("/product/hard-delete/1").with(csrf()))
                 .andExpect(status().isForbidden());
 
         verify(productService, never()).hardDelete(anyLong());

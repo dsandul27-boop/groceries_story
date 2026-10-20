@@ -46,15 +46,15 @@ public class ProductTypeController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/hard-delete-product-type-by-id/{productTypeId}")
+    @DeleteMapping("/hard-delete/{productTypeId}")
     public ResponseEntity hardDelete(@PathVariable @Positive(message = "ID must be positive") Long productTypeId) {
         productTypeService.hardDelete(productTypeId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    @DeleteMapping("/soft-delete-product-type-by-id/{productTypeId}")
+    @DeleteMapping("/soft-delete/{productTypeId}")
     public ResponseEntity softDelete (@PathVariable @Positive(message = "ID must be positive") Long productTypeId){
         productTypeService.softDelete(productTypeId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

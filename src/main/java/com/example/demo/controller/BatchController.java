@@ -45,16 +45,16 @@ public class BatchController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/hard-delete-batch-by-id/{batchId}")
+    @DeleteMapping("/hard-delete/{batchId}")
     public ResponseEntity hardDelete (@PathVariable @Positive(message = "Id must be positive") Long batchId){
         batchService.hardDelete(batchId);
-        return new ResponseEntity(HttpStatus.OK);
+        return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    @DeleteMapping("/soft-delete-batch-by-id/{batchId}")
+    @DeleteMapping("/soft-delete/{batchId}")
     public ResponseEntity softDelete (@PathVariable @Positive(message = "Id must be positive") Long batchId){
         batchService.softDelete(batchId);
-        return new ResponseEntity(HttpStatus.OK);
+        return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 }

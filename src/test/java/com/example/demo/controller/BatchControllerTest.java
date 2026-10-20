@@ -78,11 +78,11 @@ public class BatchControllerTest {
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                            {"quantity":5,
-                            "purchasePrice":12.50,
-                            "expirationDate":"2024-06-01T00:00:00Z",
-                            "productId":1}
-                            """)
+                                        {"quantity":5,
+                                        "purchasePrice":12.50,
+                                        "expirationDate":"2024-06-01T00:00:00Z",
+                                        "productId":1}
+                                        """)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.quantity").value(5))
@@ -124,19 +124,19 @@ public class BatchControllerTest {
     void softDelete_shouldReturn200AsStaff() throws Exception {
         doNothing().when(batchService).softDelete(batchId);
 
-        mockMvc.perform(delete("/batch/soft-delete-batch-by-id/1").with(csrf()))
-                .andExpect(status().isOk());
+        mockMvc.perform(delete("/batch/soft-delete/1").with(csrf()))
+                .andExpect(status().isNoContent());
 
         verify(batchService).softDelete(batchId);
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void hardDelete_shouldReturn200AsAdmin() throws Exception {
+    void hardDelete_shouldReturn202AsAdmin() throws Exception {
         doNothing().when(batchService).hardDelete(batchId);
 
-        mockMvc.perform(delete("/batch/hard-delete-batch-by-id/1").with(csrf()))
-                .andExpect(status().isOk());
+        mockMvc.perform(delete("/batch/hard-delete/1").with(csrf()))
+                .andExpect(status().isNoContent());
 
         verify(batchService).hardDelete(batchId);
     }
@@ -144,7 +144,7 @@ public class BatchControllerTest {
     @Test
     @WithMockUser(roles = "STAFF")
     void hardDelete_shouldReturn403AsStaff() throws Exception {
-        mockMvc.perform(delete("/batch/hard-delete-batch-by-id/1").with(csrf()))
+        mockMvc.perform(delete("/batch/hard-delete/1").with(csrf()))
                 .andExpect(status().isForbidden());
 
         verify(batchService, never()).hardDelete(anyLong());

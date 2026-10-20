@@ -79,10 +79,6 @@ public class ProductServiceImpl implements ProductService {
             throw new ResourceNotFoundException("Product was not found");
         }
 
-        if (optionalProduct.get().getActiveStatus().equals(ActiveStatus.INACTIVE)){
-            throw new IsInactiveException("Not available");
-        }
-
         Long productSumQuantity = batchRepository.sumQuantityByProductId(productId);
 
         ProductDTOResponse productDTOResponse = productMapper.toDTO(optionalProduct.get());
@@ -96,7 +92,7 @@ public class ProductServiceImpl implements ProductService {
             throw new ResourceNotFoundException("Product already doesn't exist");
         }
         boolean existBatch = batchRepository.existsByProductId(productId);
-        if (existBatch){
+        if (existBatch) {
             throw new EntityInUseException("Exist batch dependencies");
         }
         productRepository.deleteById(productId);
@@ -104,7 +100,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void softDelete(Long productId) {
-        Optional<Product> optionalProduct= productRepository.findById(productId);
+        Optional<Product> optionalProduct = productRepository.findById(productId);
         if (optionalProduct.isEmpty()) {
             throw new ResourceNotFoundException("Doesn't exist");
         }
@@ -119,17 +115,16 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductFilterDTOResponse> getProductFilter() {
         List<Product> productList = productRepository.findAll();
-        if (productList.isEmpty()){
+        if (productList.isEmpty()) {
             throw new ResourceNotFoundException("Product list is empty");
         }
 
         return activeProductFilterList(productList);
     }
 
-    @Override
-    public List<ProductDTOResponse> activeProductList(List<Product> productList) {
+    private List<ProductDTOResponse> activeProductList(List<Product> productList) {
         List<ProductDTOResponse> activeDTOResponse = new ArrayList<>();
-        for (Product product: productList) {
+        for (Product product : productList) {
             if (product.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
                 activeDTOResponse.add(productMapper.toDTO(product));
             }
@@ -137,10 +132,10 @@ public class ProductServiceImpl implements ProductService {
         return activeDTOResponse;
     }
 
-    @Override
-    public List<ProductFilterDTOResponse> activeProductFilterList(List<Product> productList) {
+
+    private List<ProductFilterDTOResponse> activeProductFilterList(List<Product> productList) {
         List<ProductFilterDTOResponse> activeDTOResponse = new ArrayList<>();
-        for (Product product: productList) {
+        for (Product product : productList) {
             if (product.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
                 activeDTOResponse.add(productMapper.toFilterDTO(product));
             }
@@ -149,4 +144,3 @@ public class ProductServiceImpl implements ProductService {
     }
 
 }
-

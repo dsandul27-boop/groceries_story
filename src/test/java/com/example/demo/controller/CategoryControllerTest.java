@@ -74,9 +74,9 @@ public class CategoryControllerTest {
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                            {"categoryName":"Dairy",
-                            "description" : "milk"}
-                            """)
+                                        {"categoryName":"Dairy",
+                                        "description" : "milk"}
+                                        """)
                 )
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.categoryName").value("Dairy")).andExpect(jsonPath("$.description").value("milk"));
@@ -120,8 +120,8 @@ public class CategoryControllerTest {
     void softDelete_shouldReturn200OkAsStaff() throws Exception {
         doNothing().when(categoryService).softDelete(categoryId);
 
-        mockMvc.perform(delete("/category/soft-delete-category/1").with(csrf()))
-                .andExpect(status().isOk());
+        mockMvc.perform(delete("/category/soft-delete/1").with(csrf()))
+                .andExpect(status().isNoContent());
 
         verify(categoryService).softDelete(categoryId);
     }
@@ -131,7 +131,7 @@ public class CategoryControllerTest {
     void hardDelete_shouldReturn204NoContentAsAdmin() throws Exception {
         doNothing().when(categoryService).hardDelete(categoryId);
 
-        mockMvc.perform(delete("/category/hard-delete-category/1").with(csrf()))
+        mockMvc.perform(delete("/category/hard-delete/1").with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(categoryService).hardDelete(categoryId);
@@ -140,7 +140,7 @@ public class CategoryControllerTest {
     @Test
     @WithMockUser(roles = "STAFF")
     void hardDelete_shouldReturn403ForbiddenAsStaff() throws Exception {
-        mockMvc.perform(delete("/category/hard-delete-category/1").with(csrf()))
+        mockMvc.perform(delete("/category/hard-delete/1").with(csrf()))
                 .andExpect(status().isForbidden());
 
         verify(categoryService, never()).hardDelete(anyLong());

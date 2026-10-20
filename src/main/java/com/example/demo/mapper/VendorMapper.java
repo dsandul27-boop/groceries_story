@@ -29,11 +29,11 @@ public class VendorMapper {
         return vendor;
     }
 
-    public VendorFilterDTOResponse toFilerDTO(Vendor vendor){
+    public VendorFilterDTOResponse toFilerDTO(Vendor vendor) {
         VendorFilterDTOResponse vendorFilterDTOResponse = new VendorFilterDTOResponse();
         vendorFilterDTOResponse.setId(vendor.getId());
         vendorFilterDTOResponse.setName(vendor.getName());
         vendorFilterDTOResponse.setActiveStatus(vendor.getActiveStatus());
-        return  vendorFilterDTOResponse;
+        return vendorFilterDTOResponse;
     }
 }

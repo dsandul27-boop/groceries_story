@@ -70,10 +70,10 @@ public class ProductTypeControllerTest {
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                        {"name":"Milk",
-                        "description":"Dairy stuff",
-                        "categoryId":1}
-                        """)
+                                        {"name":"Milk",
+                                        "description":"Dairy stuff",
+                                        "categoryId":1}
+                                        """)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Milk"))
@@ -113,11 +113,11 @@ public class ProductTypeControllerTest {
 
     @Test
     @WithMockUser(roles = "STAFF")
-    void softDelete_shouldReturn200OkAsStaff() throws Exception {
+    void softDelete_shouldReturn204kAsStaff() throws Exception {
         doNothing().when(productTypeService).softDelete(productTypeId);
 
-        mockMvc.perform(delete("/product_type/soft-delete-product-type-by-id/1").with(csrf()))
-                .andExpect(status().isOk());
+        mockMvc.perform(delete("/product_type/soft-delete/1").with(csrf()))
+                .andExpect(status().isNoContent());
 
         verify(productTypeService).softDelete(productTypeId);
     }
@@ -127,7 +127,7 @@ public class ProductTypeControllerTest {
     void hardDelete_shouldReturn204NoContentAsAdmin() throws Exception {
         doNothing().when(productTypeService).hardDelete(productTypeId);
 
-        mockMvc.perform(delete("/product_type/hard-delete-product-type-by-id/1").with(csrf()))
+        mockMvc.perform(delete("/product_type/hard-delete/1").with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(productTypeService).hardDelete(productTypeId);
@@ -136,7 +136,7 @@ public class ProductTypeControllerTest {
     @Test
     @WithMockUser(roles = "STAFF")
     void hardDelete_shouldReturn403ForbiddenAsStaff() throws Exception {
-        mockMvc.perform(delete("/product_type/hard-delete-product-type-by-id/1").with(csrf()))
+        mockMvc.perform(delete("/product_type/hard-delete/1").with(csrf()))
                 .andExpect(status().isForbidden());
 
         verify(productTypeService, never()).hardDelete(anyLong());

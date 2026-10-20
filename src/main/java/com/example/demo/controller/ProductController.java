@@ -45,17 +45,17 @@ public class ProductController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/hard-delete-by-id/{productId}")
+    @DeleteMapping("/hard-delete/{productId}")
     public ResponseEntity hardDelete (@PathVariable @Positive(message = "ID must be positive") Long productId){
         productService.hardDelete(productId);
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    @DeleteMapping("/soft-delete-by-id/{productId}")
+    @DeleteMapping("/soft-delete/{productId}")
     public ResponseEntity softDelete (@PathVariable @Positive(message = "ID must be positive") Long productId){
         productService.softDelete(productId);
-        return new ResponseEntity(HttpStatus.OK);
+        return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER' , 'ADMIN', 'STAFF')")

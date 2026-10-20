@@ -45,7 +45,7 @@ public class ProductTypeServiceImpl implements ProductTypeService {
     @Override
     public ProductTypeDTOResponse save(ProductTypeDTORequest productTypeDTORequest) {
         Category category = categoryRepository.findById(productTypeDTORequest.getCategoryId()).orElseThrow(() ->
-        new ResourceNotFoundException("Category not found by Id"));
+                new ResourceNotFoundException("Category not found by Id"));
         ProductType productType = productTypeMapper.toEntity(productTypeDTORequest);
         productType.setCategory(category);
         productType.setActiveStatus(ActiveStatus.ACTIVE);
@@ -70,9 +70,6 @@ public class ProductTypeServiceImpl implements ProductTypeService {
             throw new ResourceNotFoundException("Product types not found");
         }
 
-        if (optionalProduct.get().getActiveStatus().equals(ActiveStatus.INACTIVE)){
-            throw new IsInactiveException("Not available");
-        }
         return productTypeMapper.toDTO(optionalProduct.get());
     }
 
@@ -91,7 +88,7 @@ public class ProductTypeServiceImpl implements ProductTypeService {
     @Override
     public void softDelete(Long productTypeId) {
 
-        Optional<ProductType> optionalProductType= productTypeRepository.findById(productTypeId);
+        Optional<ProductType> optionalProductType = productTypeRepository.findById(productTypeId);
         if (optionalProductType.isEmpty()) {
             throw new ResourceNotFoundException("Doesn't exist");
         }
@@ -108,8 +105,8 @@ public class ProductTypeServiceImpl implements ProductTypeService {
         return productTypeRepository.existsByCategoryId(categoryId);
     }
 
-    @Override
-    public List<ProductTypeDTOResponse> activeProductTypeList(List<ProductType> productTypeList) {
+
+    private List<ProductTypeDTOResponse> activeProductTypeList(List<ProductType> productTypeList) {
         List<ProductTypeDTOResponse> activeDTOResponse = new ArrayList<>();
         for (ProductType productType : productTypeList) {
             if (productType.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
@@ -118,6 +115,4 @@ public class ProductTypeServiceImpl implements ProductTypeService {
         }
         return activeDTOResponse;
     }
-
-
 }

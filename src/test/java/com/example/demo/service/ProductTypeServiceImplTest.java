@@ -143,6 +143,26 @@ public class ProductTypeServiceImplTest {
     }
 
     @Test
+    void getAll_shouldExcludeInactiveProductTypes_AC3() {
+        ProductType activeType = new ProductType();
+        activeType.setId(1L);
+        activeType.setActiveStatus(ActiveStatus.ACTIVE);
+
+        ProductType inactiveType = new ProductType();
+        inactiveType.setId(2L);
+        inactiveType.setActiveStatus(ActiveStatus.INACTIVE);
+
+        when(productTypeRepository.findAll()).thenReturn(List.of(activeType, inactiveType));
+        when(productTypeMapper.toDTO(activeType)).thenReturn(new ProductTypeDTOResponse());
+
+        List<ProductTypeDTOResponse> result = productTypeService.getAll();
+
+        assertEquals(1, result.size());
+        verify(productTypeMapper, times(1)).toDTO(activeType);
+        verify(productTypeMapper, never()).toDTO(inactiveType);
+    }
+
+    @Test
     void getAll_shouldThrowResourceNotFoundException_whenNoProductTypesExist() {
         when(productTypeRepository.findAll()).thenReturn(new ArrayList<>());
 
@@ -178,19 +198,6 @@ public class ProductTypeServiceImplTest {
                 () -> productTypeService.getById(productTypeId));
 
         assertEquals("Product types not found", exception.getMessage());
-        verify(productTypeRepository).findById(productTypeId);
-        verifyNoInteractions(productTypeMapper);
-    }
-
-    @Test
-    void getById_shouldThrowIsInactiveException_whenProductTypeIsInactive() {
-        savedProductType.setActiveStatus(ActiveStatus.INACTIVE);
-        when(productTypeRepository.findById(productTypeId)).thenReturn(Optional.of(savedProductType));
-
-        IsInactiveException exception = assertThrows(IsInactiveException.class,
-                () -> productTypeService.getById(productTypeId));
-
-        assertEquals("Not available", exception.getMessage());
         verify(productTypeRepository).findById(productTypeId);
         verifyNoInteractions(productTypeMapper);
     }
@@ -285,5 +292,4 @@ public class ProductTypeServiceImplTest {
         assertTrue(result);
         verify(productTypeRepository).existsByCategoryId(categoryId);
     }
-
 }

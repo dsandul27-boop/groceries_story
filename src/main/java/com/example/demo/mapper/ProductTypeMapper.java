@@ -42,7 +42,7 @@ public class ProductTypeMapper {
         response.setId(productType.getId());
         response.setName(productType.getName());
         response.setDescription(productType.getProductDescription());
-
+        response.setStatus(productType.getActiveStatus());
         return response;
     }
 }
