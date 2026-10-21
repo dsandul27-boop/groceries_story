@@ -60,7 +60,12 @@ public class BatchServiceImpl implements BatchService {
         if (batchList.isEmpty()) {
             throw new ResourceNotFoundException("Batch not found");
         }
-        return activeBatchList(batchList);
+
+        List<BatchDTOResponse> responseList = new ArrayList<>();
+        for (Batch batch : batchList) {
+            responseList.add(batchMapper.toDTO(batch));
+        }
+        return responseList;
     }
 
     @Override

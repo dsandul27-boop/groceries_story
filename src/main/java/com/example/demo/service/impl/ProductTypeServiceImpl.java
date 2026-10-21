@@ -59,8 +59,11 @@ public class ProductTypeServiceImpl implements ProductTypeService {
         if (productTypeList.isEmpty()) {
             throw new ResourceNotFoundException("No product type found");
         }
-
-        return activeProductTypeList(productTypeList);
+        List<ProductTypeDTOResponse> responseList = new ArrayList<>();
+        for (ProductType productType : productTypeList) {
+            responseList.add(productTypeMapper.toDTO(productType));
+        }
+        return responseList;
     }
 
     @Override

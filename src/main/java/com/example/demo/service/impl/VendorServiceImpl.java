@@ -48,7 +48,11 @@ public class VendorServiceImpl implements VendorService {
         if (vendorList.isEmpty()) {
             throw new ResourceNotFoundException("Vendor not found");
         }
-        return activeDTOList(vendorList);
+        List<VendorDTOResponse> responseList = new ArrayList<>();
+        for (Vendor vendor : vendorList) {
+            responseList.add(vendorMapper.toDTO(vendor));
+        }
+        return responseList;
     }
 
     @Override

@@ -143,7 +143,7 @@ public class ProductTypeServiceImplTest {
     }
 
     @Test
-    void getAll_shouldExcludeInactiveProductTypes_AC3() {
+    void getAll_shouldReturnActiveAndInactiveProductTypes_AC3() {
         ProductType activeType = new ProductType();
         activeType.setId(1L);
         activeType.setActiveStatus(ActiveStatus.ACTIVE);
@@ -154,12 +154,14 @@ public class ProductTypeServiceImplTest {
 
         when(productTypeRepository.findAll()).thenReturn(List.of(activeType, inactiveType));
         when(productTypeMapper.toDTO(activeType)).thenReturn(new ProductTypeDTOResponse());
+        when(productTypeMapper.toDTO(inactiveType)).thenReturn(new ProductTypeDTOResponse());
 
         List<ProductTypeDTOResponse> result = productTypeService.getAll();
 
-        assertEquals(1, result.size());
+        assertEquals(2, result.size());
         verify(productTypeMapper, times(1)).toDTO(activeType);
-        verify(productTypeMapper, never()).toDTO(inactiveType);
+        verify(productTypeMapper, times(1)).toDTO(inactiveType);
+
     }
 
     @Test

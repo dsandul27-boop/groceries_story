@@ -176,7 +176,7 @@ public class ProductServiceImplTest {
     }
 
     @Test
-    void getAll_shouldExcludeInactiveProducts_AC3() {
+    void getAll_shouldIncludeInactiveAndActiveProducts_AC3() {
         Product activeProd = new Product();
         activeProd.setId(1L);
         activeProd.setActiveStatus(ActiveStatus.ACTIVE);
@@ -187,11 +187,12 @@ public class ProductServiceImplTest {
 
         when(productRepository.findAll()).thenReturn(List.of(activeProd, inactiveProd));
         when(productMapper.toDTO(activeProd)).thenReturn(new ProductDTOResponse());
-
+        when(productMapper.toDTO(inactiveProd)).thenReturn(new ProductDTOResponse());
         List<ProductDTOResponse> result = productService.getAll();
 
-        assertEquals(1, result.size());
-        verify(productMapper, never()).toDTO(inactiveProd);
+        assertEquals(2, result.size());
+        verify(productMapper).toDTO(inactiveProd);
+        verify(productMapper).toDTO(activeProd);
     }
 
     @Test

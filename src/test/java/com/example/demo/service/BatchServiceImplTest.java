@@ -173,7 +173,7 @@ public class BatchServiceImplTest {
     }
 
     @Test
-    void getAll_shouldExcludeInactiveBatches_AC3() {
+    void getAll_shouldIncludeInactiveAndActiveBatches_AC3() {
         Batch activeBatch = new Batch();
         activeBatch.setId(1L);
         activeBatch.setActiveStatus(ActiveStatus.ACTIVE);
@@ -184,11 +184,13 @@ public class BatchServiceImplTest {
 
         when(batchRepository.findAll()).thenReturn(List.of(activeBatch, inactiveBatch));
         when(batchMapper.toDTO(activeBatch)).thenReturn(new BatchDTOResponse());
+        when(batchMapper.toDTO(inactiveBatch)).thenReturn(new BatchDTOResponse());
 
         List<BatchDTOResponse> result = batchService.getAll();
 
-        assertEquals(1, result.size());
-        verify(batchMapper, never()).toDTO(inactiveBatch);
+        assertEquals(2, result.size());
+        verify(batchMapper).toDTO(inactiveBatch);
+        verify(batchMapper).toDTO(activeBatch);
     }
 
 

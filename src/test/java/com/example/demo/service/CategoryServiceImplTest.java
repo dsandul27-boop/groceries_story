@@ -114,7 +114,7 @@ public class CategoryServiceImplTest {
     }
 
     @Test
-    void getAll_shouldExcludeInactiveCategories_AC3() {
+    void getAll_shouldIncludeInactiveAndActiveCategories_AC3() {
 
         Category activeCategory = new Category();
         activeCategory.setId(1L);
@@ -128,13 +128,16 @@ public class CategoryServiceImplTest {
 
         when(categoryRepository.findAll()).thenReturn(repositoryList);
         when(categoryMapper.toDTO(activeCategory)).thenReturn(new CategoryDTOResponse());
+        when(categoryMapper.toDTO(inactiveCategory)).thenReturn(new CategoryDTOResponse());
 
         List<CategoryDTOResponse> result = categoryService.getAll();
 
-        assertEquals(1, result.size(), "Lista trebuie să conțină doar categoriile active");
+        assertEquals(2, result.size());
+
         verify(categoryMapper, times(1)).toDTO(activeCategory);
-        verify(categoryMapper, never()).toDTO(inactiveCategory);
+        verify(categoryMapper, times(1)).toDTO(inactiveCategory);
     }
+
 
     @Test
     void getAll_shouldResourceNotFoundException() {

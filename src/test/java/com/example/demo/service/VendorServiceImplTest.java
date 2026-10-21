@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.request.VendorDTORequest;
+import com.example.demo.dto.response.CategoryDTOResponse;
 import com.example.demo.dto.response.VendorDTOResponse;
 import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Vendor;
@@ -187,7 +188,7 @@ public class VendorServiceImplTest {
     }
 
     @Test
-    void getAll_shouldExcludeInactiveVendors_AC3() {
+    void getAll_shouldIncludeInactiveCategories_AC3() {
         Vendor activeVendor = new Vendor();
         activeVendor.setId(1L);
         activeVendor.setActiveStatus(ActiveStatus.ACTIVE);
@@ -198,11 +199,12 @@ public class VendorServiceImplTest {
 
         when(vendorRepository.findAll()).thenReturn(List.of(activeVendor, inactiveVendor));
         when(vendorMapper.toDTO(activeVendor)).thenReturn(new VendorDTOResponse());
-
+        when(vendorMapper.toDTO(inactiveVendor)).thenReturn(new VendorDTOResponse());
         List<VendorDTOResponse> result = vendorService.getAll();
 
-        assertEquals(1, result.size());
-        verify(vendorMapper, never()).toDTO(inactiveVendor);
+        assertEquals(2, result.size());
+        verify(vendorMapper).toDTO(inactiveVendor);
+        verify(vendorMapper).toDTO(activeVendor);
     }
 
     //_________________________________________________________________________________________________________________

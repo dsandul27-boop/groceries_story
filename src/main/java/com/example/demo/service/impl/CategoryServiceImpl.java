@@ -46,9 +46,8 @@ public class CategoryServiceImpl implements CategoryService {
         if (categoryList.isEmpty()) {
             throw new ResourceNotFoundException("No one Category found");
         }
-        List<Category> activeCategory = activeCategory(categoryList);
         List<CategoryDTOResponse> categoryDTOResponseList = new ArrayList<>();
-        for (Category category : activeCategory) {
+        for (Category category : categoryList) {
             categoryDTOResponseList.add(categoryMapper.toDTO(category));
         }
         return categoryDTOResponseList;

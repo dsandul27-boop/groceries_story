@@ -69,7 +69,10 @@ public class ProductServiceImpl implements ProductService {
             throw new ResourceNotFoundException("No one product found");
         }
 
-        return activeProductList(productList);
+        for (Product product : productList) {
+            productDTOResponseList.add(productMapper.toDTO(product));
+        }
+        return productDTOResponseList;
     }
 
     @Override
