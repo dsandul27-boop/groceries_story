@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -18,10 +20,12 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@EnableMethodSecurity
 @WebMvcTest(ProductTypeController.class)
 public class ProductTypeControllerTest {
 
@@ -31,7 +35,6 @@ public class ProductTypeControllerTest {
     @MockitoBean
     private ProductTypeServiceImpl productTypeService;
 
-    // Satisfies JwtAuthenticationFilter's dependency so the @WebMvcTest context loads.
     @MockitoBean
     private JwtUtil jwtUtil;
 
@@ -57,18 +60,20 @@ public class ProductTypeControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "STAFF")
     void save_shouldReturn201() throws Exception {
 
         when(productTypeService.save(productTypeDTORequest)).thenReturn(productTypeDTOResponse);
 
         mockMvc.perform(
                         post("/product_type/save-product-type")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                            {"name":"Milk",
-                            "description":"Dairy stuff",
-                            "categoryId":1}
-                            """)
+                                        {"name":"Milk",
+                                        "description":"Dairy stuff",
+                                        "categoryId":1}
+                                        """)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Milk"))
@@ -77,7 +82,9 @@ public class ProductTypeControllerTest {
         verify(productTypeService).save(any(ProductTypeDTORequest.class));
     }
 
+
     @Test
+    @WithMockUser(roles = "CUSTOMER")
     void getById_shouldReturn200() throws Exception {
 
         when(productTypeService.getById(productTypeId)).thenReturn(productTypeDTOResponse);
@@ -90,6 +97,7 @@ public class ProductTypeControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "CUSTOMER")
     void getAll_shouldReturn200() throws Exception {
 
         List<ProductTypeDTOResponse> productTypeDTOResponseList = new ArrayList<>();
@@ -104,11 +112,33 @@ public class ProductTypeControllerTest {
     }
 
     @Test
-    void delete_shouldReturnNoContent() throws Exception {
-        doNothing().when(productTypeService).delete(productTypeId);
+    @WithMockUser(roles = "STAFF")
+    void softDelete_shouldReturn204kAsStaff() throws Exception {
+        doNothing().when(productTypeService).softDelete(productTypeId);
 
-        mockMvc.perform(delete("/product_type/delete-product-type-by-id/1")).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/product_type/soft-delete/1").with(csrf()))
+                .andExpect(status().isNoContent());
 
-        verify(productTypeService).delete(productTypeId);
+        verify(productTypeService).softDelete(productTypeId);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void hardDelete_shouldReturn204NoContentAsAdmin() throws Exception {
+        doNothing().when(productTypeService).hardDelete(productTypeId);
+
+        mockMvc.perform(delete("/product_type/hard-delete/1").with(csrf()))
+                .andExpect(status().isNoContent());
+
+        verify(productTypeService).hardDelete(productTypeId);
+    }
+
+    @Test
+    @WithMockUser(roles = "STAFF")
+    void hardDelete_shouldReturn403ForbiddenAsStaff() throws Exception {
+        mockMvc.perform(delete("/product_type/hard-delete/1").with(csrf()))
+                .andExpect(status().isForbidden());
+
+        verify(productTypeService, never()).hardDelete(anyLong());
     }
 }

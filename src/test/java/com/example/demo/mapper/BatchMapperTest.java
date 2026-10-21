@@ -58,7 +58,7 @@ public class BatchMapperTest {
         assertEquals(5L, result.getQuantity());
         assertEquals(new BigDecimal("12.50"), result.getPurchasePrice());
         assertEquals(expirationDate, result.getExpirationDate());
-        assertEquals(ActiveStatus.ACTIVE, result.getActiveStatus());
+        assertEquals(ActiveStatus.ACTIVE, result.getStatus());
         assertEquals(createdAt, result.getCreatedAt());
         assertEquals(99L, result.getProductId());
     }

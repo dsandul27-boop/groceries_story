@@ -20,7 +20,7 @@ public class CategoryMapper {
         this.productTypeMapper = productTypeMapper;
     }
 
-    public CategoryDTOResponse toDTO(Category category){
+    public CategoryDTOResponse toDTO(Category category) {
         CategoryDTOResponse categoryDTOResponse = new CategoryDTOResponse();
         categoryDTOResponse.setId(category.getId());
         categoryDTOResponse.setCategoryName(category.getCategoryName());
@@ -29,14 +29,14 @@ public class CategoryMapper {
         return categoryDTOResponse;
     }
 
-    public Category toEntity(CategoryDTORequest categoryDTORequest){
+    public Category toEntity(CategoryDTORequest categoryDTORequest) {
         Category category = new Category();
         category.setCategoryName(categoryDTORequest.getCategoryName());
         category.setDescription(categoryDTORequest.getDescription());
         return category;
     }
 
-    public Category toEntity(CategoryDTOResponse categoryDTOResponse){
+    public Category toEntity(CategoryDTOResponse categoryDTOResponse) {
         Category category = new Category();
         category.setId(categoryDTOResponse.getId());
         category.setCategoryName(categoryDTOResponse.getCategoryName());
@@ -52,6 +52,7 @@ public class CategoryMapper {
         response.setId(category.getId());
         response.setCategoryName(category.getCategoryName());
         response.setDescription(category.getDescription());
+        response.setStatus(category.getActiveStatus());
 
         List<ProductTypeFilterDTOResponse> productTypes = category.getProductTypes()
                 .stream()
@@ -62,5 +63,4 @@ public class CategoryMapper {
 
         return response;
     }
-
 }

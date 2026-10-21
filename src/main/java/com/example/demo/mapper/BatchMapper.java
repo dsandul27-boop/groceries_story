@@ -14,14 +14,14 @@ public class BatchMapper {
         batchDTOResponse.setPurchasePrice(batch.getPurchasePrice());
         batchDTOResponse.setQuantity(batch.getQuantity());
         batchDTOResponse.setExpirationDate(batch.getExpirationDate());
-        batchDTOResponse.setActiveStatus(batch.getActiveStatus());
+        batchDTOResponse.setStatus(batch.getActiveStatus());
         batchDTOResponse.setCreatedAt(batch.getCreatedAt());
         batchDTOResponse.setProductId(batch.getProduct().getId());
 
         return batchDTOResponse;
     }
 
-    public Batch toEntity (BatchDTORequest batchDTORequest) {
+    public Batch toEntity(BatchDTORequest batchDTORequest) {
         Batch batch = new Batch();
         batch.setQuantity(batchDTORequest.getQuantity());
         batch.setPurchasePrice(batchDTORequest.getPurchasePrice());

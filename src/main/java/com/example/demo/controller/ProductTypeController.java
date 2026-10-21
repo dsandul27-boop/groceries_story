@@ -27,30 +27,34 @@ public class ProductTypeController {
 
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     @PostMapping("/save-product-type")
-    public ResponseEntity<ProductTypeDTOResponse> save(@Valid @RequestBody ProductTypeDTORequest productTypeDTORequest){
+    public ResponseEntity<ProductTypeDTOResponse> save(@Valid @RequestBody ProductTypeDTORequest productTypeDTORequest) {
         ProductTypeDTOResponse productTypeDTOResponse = productTypeService.save(productTypeDTORequest);
         return new ResponseEntity<>(productTypeDTOResponse, HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'ADMIN')")
     @GetMapping("/get-all-product-type")
-    public ResponseEntity<List<ProductTypeDTOResponse>> getAll(){
+    public ResponseEntity<List<ProductTypeDTOResponse>> getAll() {
         return new ResponseEntity<>(productTypeService.getAll(), HttpStatus.OK);
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'ADMIN')")
     @GetMapping("/get-product-type-by-id/{productTypeId}")
-    public ResponseEntity<ProductTypeDTOResponse> getById(@PathVariable @Positive(message = "ID must be positive")Long productTypeId){
+    public ResponseEntity<ProductTypeDTOResponse> getById(@PathVariable @Positive(message = "ID must be positive") Long productTypeId) {
         ProductTypeDTOResponse productTypeDTOResponse = productTypeService.getById(productTypeId);
         return new ResponseEntity<>(productTypeDTOResponse, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    @DeleteMapping("/delete-product-type-by-id/{productTypeId}")
-    public ResponseEntity delete (@PathVariable @Positive(message = "ID must be positive") Long productTypeId){
-        productTypeService.delete(productTypeId);
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/hard-delete/{productTypeId}")
+    public ResponseEntity hardDelete(@PathVariable @Positive(message = "ID must be positive") Long productTypeId) {
+        productTypeService.hardDelete(productTypeId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @DeleteMapping("/soft-delete/{productTypeId}")
+    public ResponseEntity softDelete (@PathVariable @Positive(message = "ID must be positive") Long productTypeId){
+        productTypeService.softDelete(productTypeId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

@@ -17,7 +17,7 @@ public class BatchFilterDTOResponse {
 
     private Instant expirationDate;
 
-    private ActiveStatus activeStatus;
+    private ActiveStatus status;
 
     private Instant createdAt;
 

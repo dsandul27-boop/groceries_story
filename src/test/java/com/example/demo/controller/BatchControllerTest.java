@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+
 import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.request.BatchDTORequest;
 import com.example.demo.dto.response.BatchDTOResponse;
@@ -10,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -20,12 +23,16 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+
+@EnableMethodSecurity
 @WebMvcTest(BatchController.class)
 public class BatchControllerTest {
+
 
     @Autowired
     private MockMvc mockMvc;
@@ -33,7 +40,6 @@ public class BatchControllerTest {
     @MockitoBean
     private BatchServiceImpl batchService;
 
-    // Satisfies JwtAuthenticationFilter's dependency so the @WebMvcTest context loads.
     @MockitoBean
     private JwtUtil jwtUtil;
 
@@ -57,24 +63,26 @@ public class BatchControllerTest {
         batchDTOResponse.setQuantity(5L);
         batchDTOResponse.setPurchasePrice(new BigDecimal("12.50"));
         batchDTOResponse.setExpirationDate(expirationDate);
-        batchDTOResponse.setActiveStatus(ActiveStatus.ACTIVE);
+        batchDTOResponse.setStatus(ActiveStatus.ACTIVE);
         batchDTOResponse.setProductId(1L);
     }
 
     @Test
+    @WithMockUser(roles = "STAFF")
     void save_shouldReturn201() throws Exception {
 
         when(batchService.save(batchDTORequest)).thenReturn(batchDTOResponse);
 
         mockMvc.perform(
                         post("/batch/save-batch")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                            {"quantity":5,
-                            "purchasePrice":12.50,
-                            "expirationDate":"2024-06-01T00:00:00Z",
-                            "productId":1}
-                            """)
+                                        {"quantity":5,
+                                        "purchasePrice":12.50,
+                                        "expirationDate":"2024-06-01T00:00:00Z",
+                                        "productId":1}
+                                        """)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.quantity").value(5))
@@ -84,6 +92,7 @@ public class BatchControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "STAFF")
     void getById_shouldReturn200() throws Exception {
 
         when(batchService.getById(batchId)).thenReturn(batchDTOResponse);
@@ -96,6 +105,7 @@ public class BatchControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "STAFF")
     void getAll_shouldReturnAccepted() throws Exception {
 
         List<BatchDTOResponse> batchDTOResponseList = new ArrayList<>();
@@ -110,11 +120,33 @@ public class BatchControllerTest {
     }
 
     @Test
-    void delete_shouldReturn200() throws Exception {
-        doNothing().when(batchService).delete(batchId);
+    @WithMockUser(roles = "STAFF")
+    void softDelete_shouldReturn200AsStaff() throws Exception {
+        doNothing().when(batchService).softDelete(batchId);
 
-        mockMvc.perform(delete("/batch/delete-batch-by-id/1")).andExpect(status().isOk());
+        mockMvc.perform(delete("/batch/soft-delete/1").with(csrf()))
+                .andExpect(status().isNoContent());
 
-        verify(batchService).delete(batchId);
+        verify(batchService).softDelete(batchId);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void hardDelete_shouldReturn202AsAdmin() throws Exception {
+        doNothing().when(batchService).hardDelete(batchId);
+
+        mockMvc.perform(delete("/batch/hard-delete/1").with(csrf()))
+                .andExpect(status().isNoContent());
+
+        verify(batchService).hardDelete(batchId);
+    }
+
+    @Test
+    @WithMockUser(roles = "STAFF")
+    void hardDelete_shouldReturn403AsStaff() throws Exception {
+        mockMvc.perform(delete("/batch/hard-delete/1").with(csrf()))
+                .andExpect(status().isForbidden());
+
+        verify(batchService, never()).hardDelete(anyLong());
     }
 }

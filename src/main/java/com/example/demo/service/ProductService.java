@@ -4,13 +4,21 @@ import com.example.demo.dto.request.ProductDTORequest;
 import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.dto.response.ProductFilterDTOResponse;
 
+
 import java.util.List;
 
 public interface ProductService {
 
     ProductDTOResponse save(ProductDTORequest productDTORequest);
-    List<ProductDTOResponse> getAll ();
+
+    List<ProductDTOResponse> getAll();
+
     ProductDTOResponse getById(Long productDTOId);
-    void delete (Long productDTOId);
+
+    void hardDelete(Long productDTOId);
+
+    void softDelete(Long productDTOId);
+
     List<ProductFilterDTOResponse> getProductFilter();
+
 }

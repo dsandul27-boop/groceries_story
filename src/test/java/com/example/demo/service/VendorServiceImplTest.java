@@ -1,10 +1,12 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.request.VendorDTORequest;
+import com.example.demo.dto.response.CategoryDTOResponse;
 import com.example.demo.dto.response.VendorDTOResponse;
 import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Vendor;
 import com.example.demo.exception.EntityInUseException;
+import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.VendorMapper;
 import com.example.demo.repository.ProductRepository;
@@ -94,6 +96,43 @@ public class VendorServiceImplTest {
     }
 
     @Test
+    void save_shouldReturnSavedVendor() {
+
+        when(vendorMapper.toEntity(vendorDTORequest))
+                .thenReturn(vendor);
+        when(vendorRepository.save(vendor))
+                .thenReturn(savedVendor);
+        when(vendorMapper.toDTO(savedVendor)).thenReturn(vendorDTOResponse);
+
+        VendorDTOResponse result = vendorService.save(vendorDTORequest);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("Latti", result.getName());
+        assertEquals(ActiveStatus.ACTIVE, result.getStatus());
+        verify(vendorMapper).toEntity(vendorDTORequest);
+        verify(vendorRepository).save(vendor);
+        verify(vendorMapper).toDTO(savedVendor);
+    }
+
+    //______________________________________________________________________________________________________________________
+
+    @Test
+    void getById_shouldReturnVendorById() {
+        Long vendorId = 1L;
+        when(vendorRepository.findById(vendorId)).thenReturn(Optional.of(vendor));
+        when(vendorMapper.toDTO(vendor)).thenReturn(vendorDTOResponse);
+
+        VendorDTOResponse result = vendorService.getById(vendorId);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("Latti", result.getName());
+        verify(vendorRepository).findById(vendorId);
+        verify(vendorMapper).toDTO(vendor);
+    }
+
+    @Test
     void getById_shouldThrowResourceNotFoundException_whenVendorDoesNotExist() {
 
         // Arrange
@@ -116,30 +155,6 @@ public class VendorServiceImplTest {
 
     //______________________________________________________________________________________________________________________
     @Test
-    void save_shouldReturnSavedVendor() {
-
-        when(vendorMapper.toEntity(vendorDTORequest))
-                .thenReturn(vendor);
-        when(vendorRepository.save(vendor))
-                .thenReturn(savedVendor);
-        when(vendorMapper.toDTO(savedVendor)).thenReturn(vendorDTOResponse);
-
-
-        // Act
-        VendorDTOResponse result = vendorService.save(vendorDTORequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals("Latti", result.getName());
-        assertEquals(ActiveStatus.ACTIVE, result.getStatus());
-        verify(vendorMapper).toEntity(vendorDTORequest);
-        verify(vendorRepository).save(vendor);
-        verify(vendorMapper).toDTO(savedVendor);
-    }
-
-    //______________________________________________________________________________________________________________________
-    @Test
     void getAll_shouldReturnAllVendors() {
 
         List<Vendor> vendorList = new ArrayList<>();
@@ -151,6 +166,7 @@ public class VendorServiceImplTest {
         List<VendorDTOResponse> resultList = vendorService.getAll();
 
         assertNotNull(resultList);
+        assertEquals(1, resultList.size());
         assertEquals(1L, resultList.get(0).getId());
         assertEquals("Latti", resultList.get(0).getName());
         assertEquals(ActiveStatus.ACTIVE, resultList.get(0).getStatus());
@@ -160,7 +176,6 @@ public class VendorServiceImplTest {
 
     @Test
     void getAll_shouldReturnResourceNotFoundExceptionIfVendorsListIsEmpty() {
-        Vendor vendor = new Vendor();
         List<Vendor> vendorList = new ArrayList<>();
 
         when(vendorRepository.findAll()).thenReturn(vendorList);
@@ -172,15 +187,81 @@ public class VendorServiceImplTest {
         verifyNoInteractions(vendorMapper);
     }
 
-    //_________________________________________________________________________________________________________________
     @Test
-    void delete_shouldDeleteOneVendorById() {
+    void getAll_shouldIncludeInactiveCategories_AC3() {
+        Vendor activeVendor = new Vendor();
+        activeVendor.setId(1L);
+        activeVendor.setActiveStatus(ActiveStatus.ACTIVE);
 
+        Vendor inactiveVendor = new Vendor();
+        inactiveVendor.setId(2L);
+        inactiveVendor.setActiveStatus(ActiveStatus.INACTIVE);
+
+        when(vendorRepository.findAll()).thenReturn(List.of(activeVendor, inactiveVendor));
+        when(vendorMapper.toDTO(activeVendor)).thenReturn(new VendorDTOResponse());
+        when(vendorMapper.toDTO(inactiveVendor)).thenReturn(new VendorDTOResponse());
+        List<VendorDTOResponse> result = vendorService.getAll();
+
+        assertEquals(2, result.size());
+        verify(vendorMapper).toDTO(inactiveVendor);
+        verify(vendorMapper).toDTO(activeVendor);
+    }
+
+    //_________________________________________________________________________________________________________________
+    // --- SOFT DELETE TESTS ---
+
+    @Test
+    void softDelete_shouldFlipStatusToInactive() {
+        Long vendorId = 1L;
+        when(vendorRepository.findById(vendorId)).thenReturn(Optional.of(vendor));
+
+        vendorService.softDelete(vendorId);
+
+        assertEquals(ActiveStatus.INACTIVE, vendor.getActiveStatus());
+        verify(vendorRepository).findById(vendorId);
+        verify(vendorRepository).save(vendor);
+    }
+
+    @Test
+    void softDelete_shouldThrowResourceNotFoundException_whenVendorDoesNotExist() {
+        Long vendorId = 1L;
+        when(vendorRepository.findById(vendorId)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> vendorService.softDelete(vendorId)
+        );
+
+        assertEquals("Doesn't exist", exception.getMessage());
+        verify(vendorRepository).findById(vendorId);
+        verify(vendorRepository, never()).save(any());
+    }
+
+    @Test
+    void softDelete_shouldThrowIsInactiveException_whenAlreadyInactive() {
+        Long vendorId = 1L;
+        vendor.setActiveStatus(ActiveStatus.INACTIVE);
+        when(vendorRepository.findById(vendorId)).thenReturn(Optional.of(vendor));
+
+        IsInactiveException exception = assertThrows(
+                IsInactiveException.class,
+                () -> vendorService.softDelete(vendorId)
+        );
+
+        assertEquals("Vendor is already inactive", exception.getMessage());
+        verify(vendorRepository).findById(vendorId);
+        verify(vendorRepository, never()).save(any());
+    }
+
+    // --- HARD DELETE TESTS ---
+
+    @Test
+    void hardDelete_shouldDeleteOneVendorById() {
         Long vendorId = 1L;
         when(vendorRepository.existsById(vendorId)).thenReturn(true);
         when(productRepository.existsByVendorId(vendorId)).thenReturn(false);
 
-        vendorService.delete(vendorId);
+        vendorService.hardDelete(vendorId);
 
         verify(vendorRepository).existsById(vendorId);
         verify(productRepository).existsByVendorId(vendorId);
@@ -188,33 +269,27 @@ public class VendorServiceImplTest {
     }
 
     @Test
-    void delete_shouldThrowResourceNotFoundException_whenVendorDoesNotExist() {
-
-        // Arrange
+    void hardDelete_shouldThrowResourceNotFoundException_whenVendorDoesNotExist() {
         Long vendorId = 1L;
-
         when(vendorRepository.existsById(vendorId)).thenReturn(false);
 
-        // Act + Assert
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> vendorService.delete(vendorId)
+                () -> vendorService.hardDelete(vendorId)
         );
 
-        // Assert
         assertEquals("Vendor not found", exception.getMessage());
-
         verify(vendorRepository).existsById(vendorId);
         verifyNoInteractions(productRepository);
+        verify(vendorRepository, never()).deleteById(anyLong());
     }
 
     @Test
-    void delete_shouldEntityInUseException_WhenProductExist() {
+    void hardDelete_shouldThrowEntityInUseException_WhenProductExist() {
         Long vendorId = 1L;
         when(vendorRepository.existsById(vendorId)).thenReturn(true);
         when(productRepository.existsByVendorId(vendorId)).thenReturn(true);
-        EntityInUseException exception = assertThrows(EntityInUseException.class, () -> vendorService.delete(vendorId));
-
+        EntityInUseException exception = assertThrows(EntityInUseException.class, () -> vendorService.hardDelete(vendorId));
         assertEquals("Product dependencies exist", exception.getMessage());
         verify(vendorRepository).existsById(vendorId);
         verify(productRepository).existsByVendorId(vendorId);

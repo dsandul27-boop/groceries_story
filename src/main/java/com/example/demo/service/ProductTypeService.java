@@ -13,9 +13,10 @@ public interface ProductTypeService {
 
     ProductTypeDTOResponse getById(Long productTypeDTOId);
 
-    void delete(Long productTypeDTOId);
+    void hardDelete(Long productTypeDTOId);
+
+    void softDelete(Long productTypeDTOId);
 
     boolean existsByCategoryId(Long categoryId);
-
 
 }

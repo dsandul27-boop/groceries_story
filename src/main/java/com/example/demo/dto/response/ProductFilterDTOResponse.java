@@ -19,7 +19,7 @@ public class ProductFilterDTOResponse {
 
     private BigDecimal price;
 
-    private ActiveStatus activeStatus;
+    private ActiveStatus status;
 
     private Instant createdAt;
 }

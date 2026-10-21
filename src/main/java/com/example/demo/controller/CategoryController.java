@@ -28,35 +28,45 @@ public class CategoryController {
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'ADMIN')")
     @GetMapping("/get-all-category")
-    public ResponseEntity<List<CategoryDTOResponse>> getAll(){
+    public ResponseEntity<List<CategoryDTOResponse>> getAll() {
         return new ResponseEntity<>(categoryService.getAll(), HttpStatus.ACCEPTED);
     }
 
+
     @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'ADMIN')")
     @GetMapping("/get-category-by-id/{id}")
-    public ResponseEntity<CategoryDTOResponse> getById(
-            @PathVariable
-            @Positive(message = "ID must be positive") Long id){
-       CategoryDTOResponse categoryDTOResponse= categoryService.getById(id);
-       return new ResponseEntity<>(categoryDTOResponse, HttpStatus.ACCEPTED);
+    public ResponseEntity<CategoryDTOResponse> getById(@PathVariable @Positive(message = "ID must be positive") Long id) {
+        CategoryDTOResponse categoryDTOResponse = categoryService.getById(id);
+        return new ResponseEntity<>(categoryDTOResponse, HttpStatus.ACCEPTED);
     }
+
 
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     @PostMapping("/save-category")
-    public ResponseEntity<CategoryDTOResponse> save(@Valid @RequestBody CategoryDTORequest categoryDTORequest){
-         return new ResponseEntity<>(categoryService.save(categoryDTORequest), HttpStatus.ACCEPTED);
+    public ResponseEntity<CategoryDTOResponse> save(@Valid @RequestBody CategoryDTORequest categoryDTORequest) {
+        return new ResponseEntity<>(categoryService.save(categoryDTORequest), HttpStatus.ACCEPTED);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    @DeleteMapping("/delete-category/{categoryId}")
-    public ResponseEntity delete(@PathVariable @Positive(message = "ID must be positive") Long categoryId){
-        categoryService.delete(categoryId);
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/hard-delete/{categoryId}")
+    public ResponseEntity hardDelete(@PathVariable @Positive(message = "ID must be positive") Long categoryId) {
+        categoryService.hardDelete(categoryId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @DeleteMapping("/soft-delete/{categoryId}")
+    public ResponseEntity softDelete(@PathVariable @Positive(message = "ID must be positive") Long categoryId) {
+        categoryService.softDelete(categoryId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+
     @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'ADMIN')")
     @GetMapping("/get-all-category-and-product-type")
-    public ResponseEntity<List<CategoryFilterDTOResponse>> getCategory(){
+    public ResponseEntity<List<CategoryFilterDTOResponse>> getCategory() {
         List<CategoryFilterDTOResponse> categoryFilterDTOResponseList = categoryService.getCategoryWithProductType();
         return new ResponseEntity<>(categoryFilterDTOResponseList, HttpStatus.OK);
     }

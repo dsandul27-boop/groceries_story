@@ -73,7 +73,7 @@ public class ProductMapperTest {
         assertEquals(5L, result.getVendorId());
         assertEquals(7L, result.getProductTypeId());
         assertEquals(new BigDecimal("10"), result.getPrice());
-        assertEquals(ActiveStatus.ACTIVE, result.getActiveStatus());
+        assertEquals(ActiveStatus.ACTIVE, result.getStatus());
         assertEquals(createdAt, result.getCreatedAt());
     }
 

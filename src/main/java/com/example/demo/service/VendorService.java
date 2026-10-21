@@ -13,5 +13,8 @@ public interface VendorService {
 
     VendorDTOResponse save(VendorDTORequest vendorDTORequest);
 
-    void delete (Long vendorDTOId);
+    void hardDelete (Long vendorDTOId);
+
+    void softDelete (Long vendorDTOId);
+
 }

@@ -6,6 +6,7 @@ import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Category;
 import com.example.demo.entities.ProductType;
 import com.example.demo.exception.EntityInUseException;
+import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.ProductTypeMapper;
 import com.example.demo.repository.CategoryRepository;
@@ -44,7 +45,7 @@ public class ProductTypeServiceImpl implements ProductTypeService {
     @Override
     public ProductTypeDTOResponse save(ProductTypeDTORequest productTypeDTORequest) {
         Category category = categoryRepository.findById(productTypeDTORequest.getCategoryId()).orElseThrow(() ->
-        new ResourceNotFoundException("Category not found by Id"));
+                new ResourceNotFoundException("Category not found by Id"));
         ProductType productType = productTypeMapper.toEntity(productTypeDTORequest);
         productType.setCategory(category);
         productType.setActiveStatus(ActiveStatus.ACTIVE);
@@ -58,11 +59,11 @@ public class ProductTypeServiceImpl implements ProductTypeService {
         if (productTypeList.isEmpty()) {
             throw new ResourceNotFoundException("No product type found");
         }
-        List<ProductTypeDTOResponse> productTypeDTOResponseList = new ArrayList<>();
+        List<ProductTypeDTOResponse> responseList = new ArrayList<>();
         for (ProductType productType : productTypeList) {
-            productTypeDTOResponseList.add(productTypeMapper.toDTO(productType));
+            responseList.add(productTypeMapper.toDTO(productType));
         }
-        return productTypeDTOResponseList;
+        return responseList;
     }
 
     @Override
@@ -71,25 +72,40 @@ public class ProductTypeServiceImpl implements ProductTypeService {
         if (optionalProduct.isEmpty()) {
             throw new ResourceNotFoundException("Product types not found");
         }
+
         return productTypeMapper.toDTO(optionalProduct.get());
     }
 
     @Override
-    public void delete(Long productTypeDTOId) {
-        if (!productTypeRepository.existsById(productTypeDTOId)) {
+    public void hardDelete(Long productTypeId) {
+        if (!productTypeRepository.existsById(productTypeId)) {
             throw new ResourceNotFoundException("Already doesn't exist");
         }
-        boolean productExist = productRepository.existsByProductTypeId(productTypeDTOId);
+        boolean productExist = productRepository.existsByProductTypeId(productTypeId);
         if (productExist) {
             throw new EntityInUseException("Product dependencies exist");
         }
-        productTypeRepository.deleteById(productTypeDTOId);
+        productTypeRepository.deleteById(productTypeId);
+    }
+
+    @Override
+    public void softDelete(Long productTypeId) {
+
+        Optional<ProductType> optionalProductType = productTypeRepository.findById(productTypeId);
+        if (optionalProductType.isEmpty()) {
+            throw new ResourceNotFoundException("Doesn't exist");
+        }
+        ProductType productType = optionalProductType.get();
+        if (productType.getActiveStatus().equals(ActiveStatus.INACTIVE)) {
+            throw new IsInactiveException("Product type is already inactive");
+        }
+        productType.setActiveStatus(ActiveStatus.INACTIVE);
+        productTypeRepository.save(productType);
     }
 
     @Override
     public boolean existsByCategoryId(Long categoryId) {
         return productTypeRepository.existsByCategoryId(categoryId);
     }
-
 
 }

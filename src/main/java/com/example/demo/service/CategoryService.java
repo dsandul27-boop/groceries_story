@@ -9,9 +9,15 @@ import java.util.List;
 public interface CategoryService {
 
     List<CategoryDTOResponse> getAll();
+
     CategoryDTOResponse getById (Long categoryId);
+
     CategoryDTOResponse save(CategoryDTORequest categoryDTORequest);
-    void delete (Long categoryId);
+
+    void hardDelete (Long categoryId);
+
+    void softDelete(Long categoryId);
+
     List<CategoryFilterDTOResponse> getCategoryWithProductType();
 
 }

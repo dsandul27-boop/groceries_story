@@ -6,6 +6,7 @@ import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Category;
 import com.example.demo.entities.ProductType;
 import com.example.demo.exception.EntityInUseException;
+import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.ProductTypeMapper;
 import com.example.demo.repository.CategoryRepository;
@@ -122,10 +123,10 @@ public class ProductTypeServiceImplTest {
     }
 
     //______________________________________________________________________________________________________________________
+    // --- TESTS FOR: getAll ---
 
     @Test
     void getAll_shouldReturnAllProductTypes() {
-
         List<ProductType> productTypeList = new ArrayList<>();
         productTypeList.add(savedProductType);
 
@@ -142,8 +143,29 @@ public class ProductTypeServiceImplTest {
     }
 
     @Test
-    void getAll_shouldThrowResourceNotFoundException_whenNoProductTypesExist() {
+    void getAll_shouldReturnActiveAndInactiveProductTypes_AC3() {
+        ProductType activeType = new ProductType();
+        activeType.setId(1L);
+        activeType.setActiveStatus(ActiveStatus.ACTIVE);
 
+        ProductType inactiveType = new ProductType();
+        inactiveType.setId(2L);
+        inactiveType.setActiveStatus(ActiveStatus.INACTIVE);
+
+        when(productTypeRepository.findAll()).thenReturn(List.of(activeType, inactiveType));
+        when(productTypeMapper.toDTO(activeType)).thenReturn(new ProductTypeDTOResponse());
+        when(productTypeMapper.toDTO(inactiveType)).thenReturn(new ProductTypeDTOResponse());
+
+        List<ProductTypeDTOResponse> result = productTypeService.getAll();
+
+        assertEquals(2, result.size());
+        verify(productTypeMapper, times(1)).toDTO(activeType);
+        verify(productTypeMapper, times(1)).toDTO(inactiveType);
+
+    }
+
+    @Test
+    void getAll_shouldThrowResourceNotFoundException_whenNoProductTypesExist() {
         when(productTypeRepository.findAll()).thenReturn(new ArrayList<>());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
@@ -154,16 +176,16 @@ public class ProductTypeServiceImplTest {
         verifyNoInteractions(productTypeMapper);
     }
 
-    //______________________________________________________________________________________________________________________
+    // --- TESTS FOR: getById ---
 
     @Test
     void getById_shouldReturnProductTypeById() {
-
         when(productTypeRepository.findById(productTypeId)).thenReturn(Optional.of(savedProductType));
         when(productTypeMapper.toDTO(savedProductType)).thenReturn(productTypeDTOResponse);
 
         ProductTypeDTOResponse result = productTypeService.getById(productTypeId);
 
+        assertNotNull(result);
         assertEquals(productTypeId, result.getId());
         assertEquals("Milk", result.getName());
         verify(productTypeRepository).findById(productTypeId);
@@ -172,7 +194,6 @@ public class ProductTypeServiceImplTest {
 
     @Test
     void getById_shouldThrowResourceNotFoundException_whenProductTypeDoesNotExist() {
-
         when(productTypeRepository.findById(productTypeId)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
@@ -183,15 +204,52 @@ public class ProductTypeServiceImplTest {
         verifyNoInteractions(productTypeMapper);
     }
 
-    //______________________________________________________________________________________________________________________
+    // --- TESTS FOR: softDelete ---
 
     @Test
-    void delete_shouldDeleteProductType() {
+    void softDelete_shouldFlipStatusToInactive() {
+        when(productTypeRepository.findById(productTypeId)).thenReturn(Optional.of(savedProductType));
 
+        productTypeService.softDelete(productTypeId);
+
+        assertEquals(ActiveStatus.INACTIVE, savedProductType.getActiveStatus());
+        verify(productTypeRepository).findById(productTypeId);
+        verify(productTypeRepository).save(savedProductType);
+    }
+
+    @Test
+    void softDelete_shouldThrowResourceNotFoundException_whenDoesNotExist() {
+        when(productTypeRepository.findById(productTypeId)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> productTypeService.softDelete(productTypeId));
+
+        assertEquals("Doesn't exist", exception.getMessage());
+        verify(productTypeRepository).findById(productTypeId);
+        verify(productTypeRepository, never()).save(any());
+    }
+
+    @Test
+    void softDelete_shouldThrowIsInactiveException_whenAlreadyInactive() {
+        savedProductType.setActiveStatus(ActiveStatus.INACTIVE);
+        when(productTypeRepository.findById(productTypeId)).thenReturn(Optional.of(savedProductType));
+
+        IsInactiveException exception = assertThrows(IsInactiveException.class,
+                () -> productTypeService.softDelete(productTypeId));
+
+        assertEquals("Product type is already inactive", exception.getMessage());
+        verify(productTypeRepository).findById(productTypeId);
+        verify(productTypeRepository, never()).save(any());
+    }
+
+    // --- TESTS FOR: hardDelete ---
+
+    @Test
+    void hardDelete_shouldDeleteProductType() {
         when(productTypeRepository.existsById(productTypeId)).thenReturn(true);
         when(productRepository.existsByProductTypeId(productTypeId)).thenReturn(false);
 
-        productTypeService.delete(productTypeId);
+        productTypeService.hardDelete(productTypeId);
 
         verify(productTypeRepository).existsById(productTypeId);
         verify(productRepository).existsByProductTypeId(productTypeId);
@@ -199,12 +257,11 @@ public class ProductTypeServiceImplTest {
     }
 
     @Test
-    void delete_shouldThrowResourceNotFoundException_whenProductTypeDoesNotExist() {
-
+    void hardDelete_shouldThrowResourceNotFoundException_whenProductTypeDoesNotExist() {
         when(productTypeRepository.existsById(productTypeId)).thenReturn(false);
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> productTypeService.delete(productTypeId));
+                () -> productTypeService.hardDelete(productTypeId));
 
         assertEquals("Already doesn't exist", exception.getMessage());
         verify(productTypeRepository).existsById(productTypeId);
@@ -213,13 +270,12 @@ public class ProductTypeServiceImplTest {
     }
 
     @Test
-    void delete_shouldThrowEntityInUseException_whenProductExists() {
-
+    void hardDelete_shouldThrowEntityInUseException_whenProductExists() {
         when(productTypeRepository.existsById(productTypeId)).thenReturn(true);
         when(productRepository.existsByProductTypeId(productTypeId)).thenReturn(true);
 
         EntityInUseException exception = assertThrows(EntityInUseException.class,
-                () -> productTypeService.delete(productTypeId));
+                () -> productTypeService.hardDelete(productTypeId));
 
         assertEquals("Product dependencies exist", exception.getMessage());
         verify(productTypeRepository).existsById(productTypeId);
@@ -227,11 +283,10 @@ public class ProductTypeServiceImplTest {
         verify(productTypeRepository, never()).deleteById(productTypeId);
     }
 
-    //______________________________________________________________________________________________________________________
+    // --- TESTS FOR: existsByCategoryId ---
 
     @Test
     void existsByCategoryId_shouldDelegateToRepository() {
-
         when(productTypeRepository.existsByCategoryId(categoryId)).thenReturn(true);
 
         boolean result = productTypeService.existsByCategoryId(categoryId);

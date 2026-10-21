@@ -8,6 +8,7 @@ import com.example.demo.entities.Product;
 import com.example.demo.entities.ProductType;
 import com.example.demo.entities.Vendor;
 import com.example.demo.exception.EntityInUseException;
+import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.ProductMapper;
 import com.example.demo.repository.BatchRepository;
@@ -67,6 +68,7 @@ public class ProductServiceImpl implements ProductService {
         if (productList.isEmpty()) {
             throw new ResourceNotFoundException("No one product found");
         }
+
         for (Product product : productList) {
             productDTOResponseList.add(productMapper.toDTO(product));
         }
@@ -79,37 +81,52 @@ public class ProductServiceImpl implements ProductService {
         if (optionalProduct.isEmpty()) {
             throw new ResourceNotFoundException("Product was not found");
         }
+
         Long productSumQuantity = batchRepository.sumQuantityByProductId(productId);
+
         ProductDTOResponse productDTOResponse = productMapper.toDTO(optionalProduct.get());
         productDTOResponse.setQuantity(productSumQuantity);
         return productDTOResponse;
     }
 
     @Override
-    public void delete(Long productId) {
+    public void hardDelete(Long productId) {
         if (!productRepository.existsById(productId)) {
             throw new ResourceNotFoundException("Product already doesn't exist");
         }
         boolean existBatch = batchRepository.existsByProductId(productId);
-        if (existBatch){
+        if (existBatch) {
             throw new EntityInUseException("Exist batch dependencies");
         }
         productRepository.deleteById(productId);
     }
 
     @Override
-    public List<ProductFilterDTOResponse> getProductFilter() {
-        List<Product> productList = productRepository.findAll();
-        if (productList.isEmpty()){
-            throw new ResourceNotFoundException("Product list is empty");
+    public void softDelete(Long productId) {
+        Optional<Product> optionalProduct = productRepository.findById(productId);
+        if (optionalProduct.isEmpty()) {
+            throw new ResourceNotFoundException("Doesn't exist");
         }
-        List<ProductFilterDTOResponse> productFilterList = new ArrayList<>();
-        for (Product product:productList){
-            productFilterList.add(productMapper.toFilterDTO(product));
+        Product product = optionalProduct.get();
+        if (product.getActiveStatus().equals(ActiveStatus.INACTIVE)) {
+            throw new IsInactiveException("Product is already inactive");
         }
-        return productFilterList;
+        product.setActiveStatus(ActiveStatus.INACTIVE);
+        productRepository.save(product);
     }
 
+    @Override
+    public List<ProductFilterDTOResponse> getProductFilter() {
+        List<ProductFilterDTOResponse> productFilterList = new ArrayList<>();
+        List<Product> productList = productRepository.findAll();
+        if (productList.isEmpty()) {
+            throw new ResourceNotFoundException("Product list is empty");
+        }
 
+        for (Product product : productList){
+            productFilterList.add(productMapper.toFilterDTO(product));
+        }
+
+        return productFilterList;
+    }
 }
-

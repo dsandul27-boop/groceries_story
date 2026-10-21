@@ -5,6 +5,7 @@ import com.example.demo.dto.response.VendorDTOResponse;
 import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Vendor;
 import com.example.demo.exception.EntityInUseException;
+import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.ProductMapper;
 import com.example.demo.mapper.VendorMapper;
@@ -21,7 +22,7 @@ import java.util.Optional;
 @Service
 public class VendorServiceImpl implements VendorService {
 
-    private final VendorRepository vendorRepository ;
+    private final VendorRepository vendorRepository;
     private final VendorMapper vendorMapper;
     private final ProductMapper productMapper;
     private final ProductRepository productRepository;
@@ -34,41 +35,62 @@ public class VendorServiceImpl implements VendorService {
         this.productRepository = productRepository;
     }
 
-    public List<VendorDTOResponse> getAll() {
-        List<Vendor> vendorList = vendorRepository.findAll();
-        if (vendorList.isEmpty()){
-            throw new ResourceNotFoundException("Vendor not found");
-        }
-        List<VendorDTOResponse> vendorDTOResponseList = new ArrayList<>();
-        for (Vendor vendor : vendorList) {
-           vendorDTOResponseList.add(vendorMapper.toDTO(vendor));
-        }
-        return vendorDTOResponseList;
-    }
-
-    public VendorDTOResponse getById(Long vendorId) {
-        Optional<Vendor> optionalVendor = vendorRepository.findById(vendorId);
-        if (optionalVendor.isEmpty()){
-            throw new ResourceNotFoundException("Vendor was not found");
-        }
-        return vendorMapper.toDTO(optionalVendor.get());
-    }
-
+    @Override
     public VendorDTOResponse save(VendorDTORequest vendorDTORequest) {
         Vendor vendor = vendorMapper.toEntity(vendorDTORequest);
         vendor.setActiveStatus(ActiveStatus.ACTIVE);
         return vendorMapper.toDTO(vendorRepository.save(vendor));
     }
 
-    public void delete (Long vendorId){
+    @Override
+    public List<VendorDTOResponse> getAll() {
+        List<Vendor> vendorList = vendorRepository.findAll();
+        if (vendorList.isEmpty()) {
+            throw new ResourceNotFoundException("Vendor not found");
+        }
+        List<VendorDTOResponse> responseList = new ArrayList<>();
+        for (Vendor vendor : vendorList) {
+            responseList.add(vendorMapper.toDTO(vendor));
+        }
+        return responseList;
+    }
+
+    @Override
+    public VendorDTOResponse getById(Long vendorId) {
+        Optional<Vendor> optionalVendor = vendorRepository.findById(vendorId);
+        if (optionalVendor.isEmpty()) {
+            throw new ResourceNotFoundException("Vendor was not found");
+        }
+
+        return vendorMapper.toDTO(optionalVendor.get());
+    }
+
+
+    @Override
+    public void hardDelete(Long vendorId) {
         if (!vendorRepository.existsById(vendorId)) {
             throw new ResourceNotFoundException("Vendor not found");
         }
         boolean existProduct = productRepository.existsByVendorId(vendorId);
-        if (existProduct){
+        if (existProduct) {
             throw new EntityInUseException("Product dependencies exist");
         }
         vendorRepository.deleteById(vendorId);
     }
+
+    @Override
+    public void softDelete(Long vendorId) {
+        Optional<Vendor> optionalVendor = vendorRepository.findById(vendorId);
+        if (optionalVendor.isEmpty()) {
+            throw new ResourceNotFoundException("Doesn't exist");
+        }
+        Vendor vendor = optionalVendor.get();
+        if (vendor.getActiveStatus().equals(ActiveStatus.INACTIVE)) {
+            throw new IsInactiveException("Vendor is already inactive");
+        }
+        vendor.setActiveStatus(ActiveStatus.INACTIVE);
+        vendorRepository.save(vendor);
+    }
+
 }
 
