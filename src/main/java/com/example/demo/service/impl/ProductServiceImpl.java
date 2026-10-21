@@ -129,15 +129,4 @@ public class ProductServiceImpl implements ProductService {
 
         return productFilterList;
     }
-
-    private List<ProductDTOResponse> activeProductList(List<Product> productList) {
-        List<ProductDTOResponse> activeDTOResponse = new ArrayList<>();
-        for (Product product : productList) {
-            if (product.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
-                activeDTOResponse.add(productMapper.toDTO(product));
-            }
-        }
-        return activeDTOResponse;
-    }
-
 }
