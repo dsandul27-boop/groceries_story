@@ -108,14 +108,4 @@ public class ProductTypeServiceImpl implements ProductTypeService {
         return productTypeRepository.existsByCategoryId(categoryId);
     }
 
-
-    private List<ProductTypeDTOResponse> activeProductTypeList(List<ProductType> productTypeList) {
-        List<ProductTypeDTOResponse> activeDTOResponse = new ArrayList<>();
-        for (ProductType productType : productTypeList) {
-            if (productType.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
-                activeDTOResponse.add(productTypeMapper.toDTO(productType));
-            }
-        }
-        return activeDTOResponse;
-    }
 }

@@ -4,6 +4,7 @@ import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.request.ProductDTORequest;
 import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.entities.ActiveStatus;
+import com.example.demo.entities.Status;
 import com.example.demo.service.impl.ProductServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,7 +58,7 @@ public class ProductControllerTest {
         productDTOResponse.setVendorId(1L);
         productDTOResponse.setProductTypeId(1L);
         productDTOResponse.setPrice(new BigDecimal("10"));
-        productDTOResponse.setActiveStatus(ActiveStatus.INACTIVE);
+        productDTOResponse.setStatus(ActiveStatus.INACTIVE);
     }
 
 
@@ -80,7 +81,7 @@ public class ProductControllerTest {
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.vendorId").value(1))
                 .andExpect(jsonPath("$.productTypeId").value(1))
-                .andExpect(jsonPath("$.activeStatus").value("INACTIVE"));
+                .andExpect(jsonPath("$.status").value("INACTIVE"));
 
         verify(productService).save(any(ProductDTORequest.class));
     }

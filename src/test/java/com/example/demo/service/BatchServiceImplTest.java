@@ -86,7 +86,7 @@ public class BatchServiceImplTest {
         batchDTOResponse.setQuantity(5L);
         batchDTOResponse.setPurchasePrice(new BigDecimal("12.50"));
         batchDTOResponse.setExpirationDate(expirationDate);
-        batchDTOResponse.setActiveStatus(ActiveStatus.ACTIVE);
+        batchDTOResponse.setStatus(ActiveStatus.ACTIVE);
         batchDTOResponse.setProductId(productId);
     }
 

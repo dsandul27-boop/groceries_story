@@ -15,7 +15,7 @@ public class BatchDTOResponse {
     private Long quantity;
     private BigDecimal purchasePrice;
     private Instant expirationDate;
-    private ActiveStatus activeStatus;
+    private ActiveStatus status;
     private Instant createdAt;
     private Long productId;
 }

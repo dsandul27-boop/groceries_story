@@ -99,26 +99,11 @@ public class CategoryServiceImpl implements CategoryService {
             throw new ResourceNotFoundException("No categories found");
         }
 
-        return activeCategoryFilterList(categoryList);
+        List<CategoryFilterDTOResponse> filterDTOResponses = new ArrayList<>();
+        for (Category category : categoryList){
+            filterDTOResponses.add(categoryMapper.categoryFilterDTOResponse(category));
+        }
+        return  filterDTOResponses;
     }
 
-    private List<Category> activeCategory(List<Category> categoryList) {
-        List<Category> activeCategory = new ArrayList<>();
-        for (Category category : categoryList) {
-            if (category.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
-                activeCategory.add(category);
-            }
-        }
-        return activeCategory;
-    }
-
-    private List<CategoryFilterDTOResponse> activeCategoryFilterList(List<Category> categoryList) {
-        List<CategoryFilterDTOResponse> activeCategory = new ArrayList<>();
-        for (Category category : categoryList) {
-            if (category.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
-                activeCategory.add(categoryMapper.categoryFilterDTOResponse(category));
-            }
-        }
-        return activeCategory;
-    }
 }

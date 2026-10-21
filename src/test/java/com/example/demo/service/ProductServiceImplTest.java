@@ -99,13 +99,13 @@ public class ProductServiceImplTest {
         productDTOResponse.setVendorId(vendorId);
         productDTOResponse.setProductTypeId(productTypeId);
         productDTOResponse.setPrice(new BigDecimal("10"));
-        productDTOResponse.setActiveStatus(ActiveStatus.ACTIVE);
+        productDTOResponse.setStatus(ActiveStatus.ACTIVE);
     }
 
     @Test
     void save_shouldSaveProductAndReturnProductDTOResponse() {
         savedProduct.setActiveStatus(ActiveStatus.INACTIVE);
-        productDTOResponse.setActiveStatus(ActiveStatus.INACTIVE);
+        productDTOResponse.setStatus(ActiveStatus.INACTIVE);
 
         when(vendorRepository.findById(vendorId)).thenReturn(Optional.of(vendor));
         when(productTypeRepository.findById(productTypeId)).thenReturn(Optional.of(productType));
@@ -119,7 +119,7 @@ public class ProductServiceImplTest {
         assertEquals(productId, result.getId());
         assertEquals(vendorId, result.getVendorId());
         assertEquals(productTypeId, result.getProductTypeId());
-        assertEquals(ActiveStatus.INACTIVE, result.getActiveStatus());
+        assertEquals(ActiveStatus.INACTIVE, result.getStatus());
         verify(vendorRepository).findById(vendorId);
         verify(productTypeRepository).findById(productTypeId);
         verify(productMapper).toEntity(productDTORequest);
@@ -196,7 +196,7 @@ public class ProductServiceImplTest {
     }
 
     @Test
-    void getProductFilter_shouldExcludeInactiveProducts_AC3() {
+    void getProductFilter_shouldReturnProducts_AC3() {
         Product activeProd = new Product();
         activeProd.setId(1L);
         activeProd.setActiveStatus(ActiveStatus.ACTIVE);
@@ -207,11 +207,12 @@ public class ProductServiceImplTest {
 
         when(productRepository.findAll()).thenReturn(List.of(activeProd, inactiveProd));
         when(productMapper.toFilterDTO(activeProd)).thenReturn(new ProductFilterDTOResponse());
-
+        when(productMapper.toFilterDTO(inactiveProd)).thenReturn(new ProductFilterDTOResponse());
         List<ProductFilterDTOResponse> result = productService.getProductFilter();
 
-        assertEquals(1, result.size());
-        verify(productMapper, never()).toFilterDTO(inactiveProd);
+        assertEquals(2, result.size());
+        verify(productMapper).toFilterDTO(inactiveProd);
+        verify(productMapper).toFilterDTO(activeProd);
     }
 
     @Test

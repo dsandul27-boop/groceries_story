@@ -100,14 +100,4 @@ public class BatchServiceImpl implements BatchService {
         batchRepository.save(batch);
     }
 
-    private List<BatchDTOResponse> activeBatchList(List<Batch> batchList) {
-        List<BatchDTOResponse> activeDTOResponse = new ArrayList<>();
-        for (Batch batch : batchList) {
-            if (batch.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
-                activeDTOResponse.add(batchMapper.toDTO(batch));
-            }
-        }
-        return activeDTOResponse;
-    }
-
 }

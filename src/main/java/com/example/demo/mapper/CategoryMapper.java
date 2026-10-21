@@ -52,6 +52,7 @@ public class CategoryMapper {
         response.setId(category.getId());
         response.setCategoryName(category.getCategoryName());
         response.setDescription(category.getDescription());
+        response.setStatus(category.getActiveStatus());
 
         List<ProductTypeFilterDTOResponse> productTypes = category.getProductTypes()
                 .stream()

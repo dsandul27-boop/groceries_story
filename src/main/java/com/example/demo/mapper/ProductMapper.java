@@ -43,7 +43,7 @@ public class ProductMapper {
         productDTOResponse.setVendorId(product.getVendor().getId());
         productDTOResponse.setProductTypeId(product.getProductType().getId());
         productDTOResponse.setPrice(product.getPrice());
-        productDTOResponse.setActiveStatus(product.getActiveStatus());
+        productDTOResponse.setStatus(product.getActiveStatus());
         productDTOResponse.setCreatedAt(product.getCreatedAt());
         return productDTOResponse;
     }
@@ -53,7 +53,7 @@ public class ProductMapper {
 
         productFilter.setId(product.getId());
         productFilter.setPrice(product.getPrice());
-        productFilter.setActiveStatus(product.getActiveStatus());
+        productFilter.setStatus(product.getActiveStatus());
         productFilter.setCreatedAt(product.getCreatedAt());
 
         ProductTypeFilterDTOResponse productTypeFilterDTOResponse = productTypeMapper.toFilterDTO(product.getProductType());

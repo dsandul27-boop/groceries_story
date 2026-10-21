@@ -33,7 +33,7 @@ public class VendorMapper {
         VendorFilterDTOResponse vendorFilterDTOResponse = new VendorFilterDTOResponse();
         vendorFilterDTOResponse.setId(vendor.getId());
         vendorFilterDTOResponse.setName(vendor.getName());
-        vendorFilterDTOResponse.setActiveStatus(vendor.getActiveStatus());
+        vendorFilterDTOResponse.setStatus(vendor.getActiveStatus());
         return vendorFilterDTOResponse;
     }
 }

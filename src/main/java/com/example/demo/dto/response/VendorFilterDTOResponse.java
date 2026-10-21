@@ -12,5 +12,5 @@ public class VendorFilterDTOResponse {
 
     private String name;
 
-    private ActiveStatus activeStatus;
+    private ActiveStatus status;
 }

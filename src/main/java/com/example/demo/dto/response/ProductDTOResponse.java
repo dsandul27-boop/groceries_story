@@ -15,7 +15,7 @@ public class ProductDTOResponse {
     private Long vendorId;
     private Long productTypeId;
     private BigDecimal price;
-    private ActiveStatus activeStatus;
+    private ActiveStatus status;
     private Instant createdAt;
     private Long quantity;
 

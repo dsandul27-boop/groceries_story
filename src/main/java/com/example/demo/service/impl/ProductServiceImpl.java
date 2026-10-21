@@ -117,12 +117,17 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductFilterDTOResponse> getProductFilter() {
+        List<ProductFilterDTOResponse> productFilterList = new ArrayList<>();
         List<Product> productList = productRepository.findAll();
         if (productList.isEmpty()) {
             throw new ResourceNotFoundException("Product list is empty");
         }
 
-        return activeProductFilterList(productList);
+        for (Product product : productList){
+            productFilterList.add(productMapper.toFilterDTO(product));
+        }
+
+        return productFilterList;
     }
 
     private List<ProductDTOResponse> activeProductList(List<Product> productList) {
@@ -130,17 +135,6 @@ public class ProductServiceImpl implements ProductService {
         for (Product product : productList) {
             if (product.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
                 activeDTOResponse.add(productMapper.toDTO(product));
-            }
-        }
-        return activeDTOResponse;
-    }
-
-
-    private List<ProductFilterDTOResponse> activeProductFilterList(List<Product> productList) {
-        List<ProductFilterDTOResponse> activeDTOResponse = new ArrayList<>();
-        for (Product product : productList) {
-            if (product.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
-                activeDTOResponse.add(productMapper.toFilterDTO(product));
             }
         }
         return activeDTOResponse;

@@ -92,15 +92,5 @@ public class VendorServiceImpl implements VendorService {
         vendorRepository.save(vendor);
     }
 
-
-    private List<VendorDTOResponse> activeDTOList(List<Vendor> vendorList) {
-        List<VendorDTOResponse> activeDTOResponse = new ArrayList<>();
-        for (Vendor vendor : vendorList) {
-            if (vendor.getActiveStatus().equals(ActiveStatus.ACTIVE)) {
-                activeDTOResponse.add(vendorMapper.toDTO(vendor));
-            }
-        }
-        return activeDTOResponse;
-    }
 }
 
