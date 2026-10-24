@@ -91,7 +91,7 @@ public class ProductControllerTest {
                                         "price":10}
                                         """)
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Latte"))
                 .andExpect(jsonPath("$.description").value("Very tasty milk, trust me"))
                 .andExpect(jsonPath("$.vendorId").value(1))
@@ -147,7 +147,7 @@ public class ProductControllerTest {
                                         }
                                         """)
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Latte"))
                 .andExpect(jsonPath("$.description").value(org.hamcrest.Matchers.nullValue()))
                 .andExpect(jsonPath("$.vendorId").value(1))

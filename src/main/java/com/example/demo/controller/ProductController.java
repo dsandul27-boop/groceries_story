@@ -29,7 +29,7 @@ public class ProductController {
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     @PostMapping("/save-product")
     public ResponseEntity<ProductDTOResponse> save(@Valid @RequestBody ProductDTORequest productDTO) {
-        return new ResponseEntity<>(productService.save(productDTO), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(productService.save(productDTO), HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'ADMIN')")

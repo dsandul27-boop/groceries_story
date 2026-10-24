@@ -120,7 +120,7 @@ public class ProductServiceImpl implements ProductService {
             throw new ResourceNotFoundException("Product list is empty");
         }
 
-        for (Product product : productList){
+        for (Product product : productList) {
             productFilterList.add(productMapper.toFilterDTO(product));
         }
 
@@ -139,10 +139,19 @@ public class ProductServiceImpl implements ProductService {
 
         product.setName(updateDTORequest.getName());
 
-        if (updateDTORequest.getDescription() != null && !updateDTORequest.getDescription().isBlank()) {
-            product.setDescription(updateDTORequest.getDescription());
+        if (updateDTORequest.getName() != null) {
+            if (updateDTORequest.getName().isBlank()) {
+                throw new ResourceNotFoundException("Empty name");
+            }
+            product.setName(updateDTORequest.getName());
         }
 
+        if (updateDTORequest.getDescription() != null) {
+            if (updateDTORequest.getDescription().isBlank()) {
+                throw new ResourceNotFoundException("Empty description");
+            }
+        }
+        product.setDescription(updateDTORequest.getDescription());
         return productMapper.toDTO(productRepository.save(product));
     }
 }

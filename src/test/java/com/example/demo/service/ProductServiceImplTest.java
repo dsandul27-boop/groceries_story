@@ -431,4 +431,50 @@ public class ProductServiceImplTest {
         verify(productRepository).save(savedProduct);
     }
 
+    @Test
+    void updateProduct_shouldKeepNameUnchanged_whenNameIsAbsent() {
+
+        productUpdateDTORequest.setName(null);
+        productUpdateDTORequest.setDescription("New description text");
+
+        savedProduct.setName("Latte");
+        savedProduct.setDescription("Old Description");
+
+        productDTOResponse.setName("Latte");
+        productDTOResponse.setDescription("New description text");
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(savedProduct);
+        when(productMapper.toDTO(savedProduct)).thenReturn(productDTOResponse);
+
+        ProductDTOResponse result = productService.updateProduct(productId, productUpdateDTORequest);
+
+        assertNotNull(result);
+        assertEquals("Latte", result.getName());
+        assertEquals("New description text", result.getDescription());
+
+        verify(productRepository).findById(productId);
+        verify(productRepository).save(savedProduct);
+        verify(productMapper).toDTO(savedProduct);
+    }
+
+    @Test
+    void updateProduct_shouldThrowResourceNotFoundException_whenNameIsPresentButBlank() {
+
+        productUpdateDTORequest.setName("   ");
+        productUpdateDTORequest.setDescription("Valid description");
+
+        savedProduct.setName("Latte");
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> productService.updateProduct(productId, productUpdateDTORequest));
+
+        assertEquals("Empty name", exception.getMessage());
+        verify(productRepository).findById(productId);
+        verify(productRepository, never()).save(any(Product.class));
+        verifyNoInteractions(productMapper);
+    }
+
 }
