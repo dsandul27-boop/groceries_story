@@ -66,7 +66,7 @@ public class ProductTypeControllerTest {
         when(productTypeService.save(productTypeDTORequest)).thenReturn(productTypeDTOResponse);
 
         mockMvc.perform(
-                        post("/product_type/save-product-type")
+                        post("/product_type")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
@@ -89,7 +89,7 @@ public class ProductTypeControllerTest {
 
         when(productTypeService.getById(productTypeId)).thenReturn(productTypeDTOResponse);
 
-        mockMvc.perform(get("/product_type/get-product-type-by-id/1")).andExpect(status().isOk())
+        mockMvc.perform(get("/product_type/1")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.name").value("Milk"));
 

@@ -13,6 +13,10 @@ public class ProductFilterDTOResponse {
 
     private Long id;
 
+    private String name;
+
+    private String description;
+
     private ProductTypeFilterDTOResponse productTypeFilterDTOResponse;
 
     private VendorFilterDTOResponse vendorFilterDTOResponse;

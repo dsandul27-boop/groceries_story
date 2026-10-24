@@ -71,14 +71,14 @@ public class ProductTypeServiceImplTest {
 
         productType = new ProductType();
         productType.setName("Milk");
-        productType.setProductDescription("Dairy stuff");
+        productType.setDescription("Dairy stuff");
 
         savedProductType = new ProductType();
         savedProductType.setId(productTypeId);
         savedProductType.setName("Milk");
-        savedProductType.setProductDescription("Dairy stuff");
+        savedProductType.setDescription("Dairy stuff");
         savedProductType.setCategory(category);
-        savedProductType.setActiveStatus(ActiveStatus.ACTIVE);
+        savedProductType.setStatus(ActiveStatus.ACTIVE);
 
         productTypeDTOResponse = new ProductTypeDTOResponse();
         productTypeDTOResponse.setId(productTypeId);
@@ -146,11 +146,11 @@ public class ProductTypeServiceImplTest {
     void getAll_shouldReturnActiveAndInactiveProductTypes_AC3() {
         ProductType activeType = new ProductType();
         activeType.setId(1L);
-        activeType.setActiveStatus(ActiveStatus.ACTIVE);
+        activeType.setStatus(ActiveStatus.ACTIVE);
 
         ProductType inactiveType = new ProductType();
         inactiveType.setId(2L);
-        inactiveType.setActiveStatus(ActiveStatus.INACTIVE);
+        inactiveType.setStatus(ActiveStatus.INACTIVE);
 
         when(productTypeRepository.findAll()).thenReturn(List.of(activeType, inactiveType));
         when(productTypeMapper.toDTO(activeType)).thenReturn(new ProductTypeDTOResponse());
@@ -212,7 +212,7 @@ public class ProductTypeServiceImplTest {
 
         productTypeService.softDelete(productTypeId);
 
-        assertEquals(ActiveStatus.INACTIVE, savedProductType.getActiveStatus());
+        assertEquals(ActiveStatus.INACTIVE, savedProductType.getStatus());
         verify(productTypeRepository).findById(productTypeId);
         verify(productTypeRepository).save(savedProductType);
     }
@@ -231,7 +231,7 @@ public class ProductTypeServiceImplTest {
 
     @Test
     void softDelete_shouldThrowIsInactiveException_whenAlreadyInactive() {
-        savedProductType.setActiveStatus(ActiveStatus.INACTIVE);
+        savedProductType.setStatus(ActiveStatus.INACTIVE);
         when(productTypeRepository.findById(productTypeId)).thenReturn(Optional.of(savedProductType));
 
         IsInactiveException exception = assertThrows(IsInactiveException.class,

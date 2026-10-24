@@ -26,22 +26,22 @@ public class ProductController {
     }
 
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
-    @PostMapping("/save-product")
+    @PostMapping
     public ResponseEntity<ProductDTOResponse> save (@Valid @RequestBody ProductDTORequest productDTO){
-        return new ResponseEntity<>(productService.save(productDTO), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(productService.save(productDTO), HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'ADMIN')")
     @GetMapping("/get-all-product")
     public ResponseEntity<List<ProductDTOResponse>> getAll (){
-        return new ResponseEntity<>(productService.getAll(), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(productService.getAll(), HttpStatus.OK);
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'ADMIN')")
-    @GetMapping("/get-product-by-id/{productId}")
+    @GetMapping("/{productId}")
     public ResponseEntity<ProductDTOResponse> getById(@PathVariable @Positive(message = "ID must be positive") Long productId){
         ProductDTOResponse productDTOResponse = productService.getById(productId);
-        return new ResponseEntity<>(productDTOResponse, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(productDTOResponse, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

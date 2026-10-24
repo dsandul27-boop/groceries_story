@@ -30,9 +30,9 @@ public class ProductTypeMapperTest {
         productType = new ProductType();
         productType.setId(1L);
         productType.setName("Milk");
-        productType.setProductDescription("Dairy stuff");
+        productType.setDescription("Dairy stuff");
         productType.setCategory(category);
-        productType.setActiveStatus(ActiveStatus.ACTIVE);
+        productType.setStatus(ActiveStatus.ACTIVE);
 
         productTypeDTORequest = new ProductTypeDTORequest();
         productTypeDTORequest.setName("Milk");
@@ -62,7 +62,7 @@ public class ProductTypeMapperTest {
         ProductType result = productTypeMapper.toEntity(productTypeDTORequest);
 
         assertEquals("Milk", result.getName());
-        assertEquals("Dairy stuff", result.getProductDescription());
+        assertEquals("Dairy stuff", result.getDescription());
         assertNull(result.getCategory());
         assertNull(result.getId());
     }
@@ -73,7 +73,7 @@ public class ProductTypeMapperTest {
         ProductType result = productTypeMapper.toEntity(productTypeDTOResponse);
 
         assertEquals("Milk", result.getName());
-        assertEquals("Dairy stuff", result.getProductDescription());
+        assertEquals("Dairy stuff", result.getDescription());
         assertNull(result.getCategory());
     }
 }

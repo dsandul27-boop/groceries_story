@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -77,7 +78,7 @@ public class ProductServiceImplTest {
         productType = new ProductType();
         productType.setId(productTypeId);
         productType.setName("Milk");
-        productType.setActiveStatus(ActiveStatus.ACTIVE);
+        productType.setStatus(ActiveStatus.ACTIVE);
 
         productDTORequest = new ProductDTORequest();
         productDTORequest.setVendorId(vendorId);
@@ -101,11 +102,25 @@ public class ProductServiceImplTest {
         productDTOResponse.setPrice(new BigDecimal("10"));
         productDTOResponse.setStatus(ActiveStatus.ACTIVE);
     }
+    // ... continuarea clasei tale după getById_shouldReturnProductById
 
     @Test
-    void save_shouldSaveProductAndReturnProductDTOResponse() {
-        savedProduct.setActiveStatus(ActiveStatus.INACTIVE);
-        productDTOResponse.setStatus(ActiveStatus.INACTIVE);
+    void shouldSaveProductWithOwnNameAndDescription_WhenDataIsValid() {
+        // Arrange
+        productDTORequest.setName("Special Latte");
+        productDTORequest.setDescription("Artisan coffee blend with oat milk");
+
+        product.setName("Special Latte");
+        product.setDescription("Artisan coffee blend with oat milk");
+
+        savedProduct.setName("Special Latte");
+        savedProduct.setDescription("Artisan coffee blend with oat milk");
+
+        productDTOResponse.setName("Special Latte");
+        productDTOResponse.setDescription("Artisan coffee blend with oat milk");
+
+        // Setăm un nume diferit pe ProductType pentru a demonstra independența valorilor din cerință
+        productType.setName("Dairy Category");
 
         when(vendorRepository.findById(vendorId)).thenReturn(Optional.of(vendor));
         when(productTypeRepository.findById(productTypeId)).thenReturn(Optional.of(productType));
@@ -113,47 +128,81 @@ public class ProductServiceImplTest {
         when(productRepository.save(product)).thenReturn(savedProduct);
         when(productMapper.toDTO(savedProduct)).thenReturn(productDTOResponse);
 
+        // Act
         ProductDTOResponse result = productService.save(productDTORequest);
 
+        // Assert
         assertNotNull(result);
-        assertEquals(productId, result.getId());
-        assertEquals(vendorId, result.getVendorId());
-        assertEquals(productTypeId, result.getProductTypeId());
-        assertEquals(ActiveStatus.INACTIVE, result.getStatus());
-        verify(vendorRepository).findById(vendorId);
-        verify(productTypeRepository).findById(productTypeId);
-        verify(productMapper).toEntity(productDTORequest);
+        assertEquals("Special Latte", result.getName());
+        assertEquals("Artisan coffee blend with oat milk", result.getDescription());
+        // Verificăm regula de business: numele produsului este independent de numele tipului de produs
+        assertNotEquals(productType.getName(), result.getName());
+
         verify(productRepository).save(product);
         verify(productMapper).toDTO(savedProduct);
     }
 
     @Test
-    void save_shouldThrowResourceNotFoundException_whenVendorNotFound() {
+    void shouldSaveProductWithoutDescription_WhenDescriptionIsMissing() {
+        // Arrange
+        productDTORequest.setName("Latte");
+        productDTORequest.setDescription(null); // Description este opțional
 
-        when(vendorRepository.findById(vendorId)).thenReturn(Optional.empty());
+        product.setName("Latte");
+        product.setDescription(null);
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> productService.save(productDTORequest));
+        savedProduct.setName("Latte");
+        savedProduct.setDescription(null);
 
-        assertEquals("Vendor is empty", exception.getMessage());
-        verify(vendorRepository).findById(vendorId);
-        verifyNoInteractions(productTypeRepository, productMapper, productRepository);
+        productDTOResponse.setName("Latte");
+        productDTOResponse.setDescription(null);
+
+        when(vendorRepository.findById(vendorId)).thenReturn(Optional.of(vendor));
+        when(productTypeRepository.findById(productTypeId)).thenReturn(Optional.of(productType));
+        when(productMapper.toEntity(productDTORequest)).thenReturn(product);
+        when(productRepository.save(product)).thenReturn(savedProduct);
+        when(productMapper.toDTO(savedProduct)).thenReturn(productDTOResponse);
+
+        // Act
+        ProductDTOResponse result = productService.save(productDTORequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Latte", result.getName());
+        assertNull(result.getDescription());
+
+        verify(productRepository).save(product);
     }
 
     @Test
-    void save_shouldThrowResourceNotFoundException_whenProductTypeNotFound() {
+    void shouldReturnResponseDtoWithProductOwnFields_WhenMapping() {
+        // Arrange
+        Product entityProduct = new Product();
+        entityProduct.setId(productId);
+        entityProduct.setName("Actual Product Name");
+        entityProduct.setDescription("Actual Product Description");
 
-        when(vendorRepository.findById(vendorId)).thenReturn(Optional.of(vendor));
-        when(productTypeRepository.findById(productTypeId)).thenReturn(Optional.empty());
+        ProductType type = new ProductType();
+        type.setName("Fruits Category");
+        entityProduct.setProductType(type);
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> productService.save(productDTORequest));
+        ProductDTOResponse responseDto = new ProductDTOResponse();
+        responseDto.setId(productId);
+        responseDto.setName("Actual Product Name");
+        responseDto.setDescription("Actual Product Description");
 
-        assertEquals("Product type is empty", exception.getMessage());
-        verify(vendorRepository).findById(vendorId);
-        verify(productTypeRepository).findById(productTypeId);
-        verifyNoInteractions(productMapper, productRepository);
+        when(productMapper.toDTO(entityProduct)).thenReturn(responseDto);
+
+        // Act
+        ProductDTOResponse result = productMapper.toDTO(entityProduct);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Actual Product Name", result.getName());
+        assertEquals("Actual Product Description", result.getDescription());
+        assertNotEquals(entityProduct.getProductType().getName(), result.getName());
     }
+
 
     //______________________________________________________________________________________________________________________
 

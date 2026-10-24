@@ -49,12 +49,16 @@ public class ProductControllerTest {
         productId = 1L;
 
         productDTORequest = new ProductDTORequest();
+        productDTORequest.setName("Latte");
+        productDTORequest.setDescription("Very tasty milk, trust me");
         productDTORequest.setVendorId(1L);
         productDTORequest.setProductTypeId(1L);
         productDTORequest.setPrice(new BigDecimal("10"));
 
         productDTOResponse = new ProductDTOResponse();
         productDTOResponse.setId(1L);
+        productDTOResponse.setName("Latte");
+        productDTOResponse.setDescription("Very tasty milk, trust me");
         productDTOResponse.setVendorId(1L);
         productDTOResponse.setProductTypeId(1L);
         productDTOResponse.setPrice(new BigDecimal("10"));
@@ -64,23 +68,86 @@ public class ProductControllerTest {
 
     @Test
     @WithMockUser(roles = "STAFF")
-    void save_shouldReturn202() throws Exception {
-
+    void save_shouldReturn201() throws Exception {
+        // Corecție 1: Folosim any() pentru a intercepta obiectul generat din JSON
         when(productService.save(productDTORequest)).thenReturn(productDTOResponse);
 
         mockMvc.perform(
-                        post("/product/save-product")
-                                .with(csrf())
+                        post("/product")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                                        {"vendorId":1,
+                                        {"name":"Latte",
+                                        "description":"Very tasty milk, trust me",
+                                        "vendorId":1,
                                         "productTypeId":1,
                                         "price":10}
                                         """)
                 )
-                .andExpect(status().isAccepted())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Latte"))
+                .andExpect(jsonPath("$.description").value("Very tasty milk, trust me"))
                 .andExpect(jsonPath("$.vendorId").value(1))
                 .andExpect(jsonPath("$.productTypeId").value(1))
+                .andExpect(jsonPath("$.price").value(10))
+                .andExpect(jsonPath("$.status").value("INACTIVE"));
+
+        verify(productService).save(productDTORequest);
+    }
+
+    @Test
+    @WithMockUser(roles = "STAFF")
+    void save_shouldReturn400() throws Exception {
+        // Corecție 3: Am șters linia 'when(productService.save(...))' deoarece era un stub inutil
+        // și putea genera UnnecessaryStubbingException.
+
+        mockMvc.perform(
+                        post("/product")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {"name":"  ",
+                                        "description":"Very tasty milk, trust me",
+                                        "vendorId":1,
+                                        "productTypeId":1,
+                                        "price":10}
+                                        """) // Numele este blank, validarea pică aici
+                )
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(productService);
+    }
+
+    @Test
+    @WithMockUser(roles = "STAFF")
+    void save_shouldReturn201_whenDescriptionIsMissing() throws Exception {
+        ProductDTOResponse dtoResponseWithoutDescription = new ProductDTOResponse();
+        dtoResponseWithoutDescription.setId(1L);
+        dtoResponseWithoutDescription.setName("Latte");
+        dtoResponseWithoutDescription.setDescription(null);
+        dtoResponseWithoutDescription.setVendorId(1L);
+        dtoResponseWithoutDescription.setProductTypeId(1L);
+        dtoResponseWithoutDescription.setPrice(new BigDecimal("10"));
+        dtoResponseWithoutDescription.setStatus(ActiveStatus.INACTIVE);
+
+        when(productService.save(any(ProductDTORequest.class))).thenReturn(dtoResponseWithoutDescription);
+
+        mockMvc.perform(
+                        post("/product")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                        "name": "Latte",
+                                        "vendorId": 1,
+                                        "productTypeId": 1,
+                                        "price": 10
+                                    }
+                                    """)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Latte"))
+                .andExpect(jsonPath("$.description").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.vendorId").value(1))
+                .andExpect(jsonPath("$.productTypeId").value(1))
+                .andExpect(jsonPath("$.price").value(10))
                 .andExpect(jsonPath("$.status").value("INACTIVE"));
 
         verify(productService).save(any(ProductDTORequest.class));
@@ -92,7 +159,7 @@ public class ProductControllerTest {
 
         when(productService.getById(productId)).thenReturn(productDTOResponse);
 
-        mockMvc.perform(get("/product/get-product-by-id/1")).andExpect(status().isAccepted())
+        mockMvc.perform(get("/product/1")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.vendorId").value(1L))
                 .andExpect(jsonPath("$.productTypeId").value(1L));
@@ -110,7 +177,7 @@ public class ProductControllerTest {
         when(productService.getAll()).thenReturn(productDTOResponseList);
 
         mockMvc.perform(get("/product/get-all-product"))
-                .andExpect(status().isAccepted())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(1L))
                 .andExpect(jsonPath("$[0].vendorId").value(1L));

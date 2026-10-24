@@ -33,12 +33,16 @@ public class ProductMapper {
 
     public Product toEntity(ProductDTORequest productDTORequest) {
         Product product = new Product();
+        product.setName(productDTORequest.getName());
+        product.setDescription(productDTORequest.getDescription());
         product.setPrice(productDTORequest.getPrice());
         return product;
     }
 
     public ProductDTOResponse toDTO(Product product) {
         ProductDTOResponse productDTOResponse = new ProductDTOResponse();
+        productDTOResponse.setName(product.getName());
+        productDTOResponse.setDescription(product.getDescription());
         productDTOResponse.setId(product.getId());
         productDTOResponse.setVendorId(product.getVendor().getId());
         productDTOResponse.setProductTypeId(product.getProductType().getId());
@@ -52,6 +56,8 @@ public class ProductMapper {
         ProductFilterDTOResponse productFilter = new ProductFilterDTOResponse();
 
         productFilter.setId(product.getId());
+        productFilter.setName(productFilter.getName());
+        productFilter.setDescription(product.getDescription());
         productFilter.setPrice(product.getPrice());
         productFilter.setStatus(product.getActiveStatus());
         productFilter.setCreatedAt(product.getCreatedAt());

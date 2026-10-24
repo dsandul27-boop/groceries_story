@@ -54,6 +54,9 @@ public class ProductServiceImpl implements ProductService {
             throw new ResourceNotFoundException("Product type is empty");
         }
         Product product = productMapper.toEntity(productDTORequest);
+        product.setName(productDTORequest.getName());
+        product.setDescription(productDTORequest.getDescription());
+        product.setPrice(productDTORequest.getPrice());
         product.setVendor(vendorOptional.get());
         product.setProductType(productTypeOptional.get());
         product.setActiveStatus(ActiveStatus.INACTIVE);

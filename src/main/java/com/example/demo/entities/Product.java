@@ -1,6 +1,7 @@
 package com.example.demo.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -17,6 +18,13 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank
+    @Column(name = "name", nullable = false, length = 100)
+    private String name;
+
+    @Column(name = "description", length = 500)
+    private String description;
 
     @ManyToOne
     @JoinColumn(name = "product_type_id", nullable = false)
