@@ -11,7 +11,7 @@ import com.example.demo.entities.Vendor;
 import com.example.demo.exception.EntityInUseException;
 import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
-import com.example.demo.exception.ResponseStatusException;
+import com.example.demo.exception.NotBlankException;
 import com.example.demo.mapper.ProductMapper;
 import com.example.demo.repository.BatchRepository;
 import com.example.demo.repository.ProductRepository;
@@ -25,8 +25,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -457,7 +455,7 @@ public class ProductServiceImplTest {
 
         when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
 
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        NotBlankException exception = assertThrows(NotBlankException.class,
                 () -> productService.updateProduct(productId, productUpdateDTORequest));
 
         assertEquals("Missing statement", exception.getMessage());
@@ -509,7 +507,7 @@ public class ProductServiceImplTest {
 
         when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
 
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        NotBlankException exception = assertThrows(NotBlankException.class,
                 () -> productService.updateProduct(productId, productUpdateDTORequest));
 
         assertEquals("Missing statement", exception.getMessage());

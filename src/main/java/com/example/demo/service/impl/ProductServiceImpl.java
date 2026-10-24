@@ -8,7 +8,7 @@ import com.example.demo.entities.*;
 import com.example.demo.exception.EntityInUseException;
 import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
-import com.example.demo.exception.ResponseStatusException;
+import com.example.demo.exception.NotBlankException;
 import com.example.demo.mapper.ProductMapper;
 import com.example.demo.repository.*;
 import com.example.demo.service.ProductService;
@@ -140,13 +140,13 @@ public class ProductServiceImpl implements ProductService {
 
         if (updateDTORequest.getName() != null) {
             if (updateDTORequest.getName().isBlank()) {
-                throw new ResponseStatusException("Missing statement");
+                throw new NotBlankException("Missing statement");
             }
             product.setName(updateDTORequest.getName());
         }
         if (updateDTORequest.getDescription() != null) {
             if (updateDTORequest.getDescription().isBlank()) {
-                throw new ResponseStatusException("Missing statement");
+                throw new NotBlankException("Missing statement");
             }
                 product.setDescription(updateDTORequest.getDescription());
         }
