@@ -62,11 +62,11 @@ public class ProductTypeControllerTest {
     @Test
     @WithMockUser(roles = "STAFF")
     void save_shouldReturn201() throws Exception {
+        when(productTypeService.save(any(ProductTypeDTORequest.class))).thenReturn(productTypeDTOResponse);
 
-        when(productTypeService.save(productTypeDTORequest)).thenReturn(productTypeDTOResponse);
 
         mockMvc.perform(
-                        post("/product_type")
+                        post("/product-type")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
@@ -82,15 +82,14 @@ public class ProductTypeControllerTest {
         verify(productTypeService).save(any(ProductTypeDTORequest.class));
     }
 
-
     @Test
     @WithMockUser(roles = "CUSTOMER")
     void getById_shouldReturn200() throws Exception {
-
         when(productTypeService.getById(productTypeId)).thenReturn(productTypeDTOResponse);
 
-        mockMvc.perform(get("/product_type/1")).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
+        mockMvc.perform(get("/product-type/{productTypeId}", productTypeId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Milk"));
 
         verify(productTypeService).getById(productTypeId);
@@ -99,24 +98,26 @@ public class ProductTypeControllerTest {
     @Test
     @WithMockUser(roles = "CUSTOMER")
     void getAll_shouldReturn200() throws Exception {
-
         List<ProductTypeDTOResponse> productTypeDTOResponseList = new ArrayList<>();
         productTypeDTOResponseList.add(productTypeDTOResponse);
 
         when(productTypeService.getAll()).thenReturn(productTypeDTOResponseList);
 
-        mockMvc.perform(get("/product_type/get-all-product-type")).andExpect(status().isOk())
+
+        mockMvc.perform(get("/product-type/get-all-product-type"))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].id").value(1L));
+                .andExpect(jsonPath("$[0].id").value(1));
+
         verify(productTypeService).getAll();
     }
 
     @Test
     @WithMockUser(roles = "STAFF")
-    void softDelete_shouldReturn204kAsStaff() throws Exception {
+    void softDelete_shouldReturn204AsStaff() throws Exception {
         doNothing().when(productTypeService).softDelete(productTypeId);
 
-        mockMvc.perform(delete("/product_type/soft-delete/1").with(csrf()))
+        mockMvc.perform(delete("/product-type/soft-delete/{productTypeId}", productTypeId).with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(productTypeService).softDelete(productTypeId);
@@ -127,7 +128,8 @@ public class ProductTypeControllerTest {
     void hardDelete_shouldReturn204NoContentAsAdmin() throws Exception {
         doNothing().when(productTypeService).hardDelete(productTypeId);
 
-        mockMvc.perform(delete("/product_type/hard-delete/1").with(csrf()))
+
+        mockMvc.perform(delete("/product-type/hard-delete/{productTypeId}", productTypeId).with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(productTypeService).hardDelete(productTypeId);
@@ -136,7 +138,8 @@ public class ProductTypeControllerTest {
     @Test
     @WithMockUser(roles = "STAFF")
     void hardDelete_shouldReturn403ForbiddenAsStaff() throws Exception {
-        mockMvc.perform(delete("/product_type/hard-delete/1").with(csrf()))
+
+        mockMvc.perform(delete("/product-type/hard-delete/{productTypeId}", productTypeId).with(csrf()))
                 .andExpect(status().isForbidden());
 
         verify(productTypeService, never()).hardDelete(anyLong());

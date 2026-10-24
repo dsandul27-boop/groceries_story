@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/product_type")
+@RequestMapping("/product-type")
 public class ProductTypeController {
 
 

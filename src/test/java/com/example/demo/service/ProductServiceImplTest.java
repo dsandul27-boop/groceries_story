@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.request.ProductDTORequest;
+import com.example.demo.dto.request.ProductUpdateDTORequest;
 import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.dto.response.ProductFilterDTOResponse;
 import com.example.demo.entities.ActiveStatus;
@@ -59,6 +60,7 @@ public class ProductServiceImplTest {
     private Product savedProduct;
     private ProductDTORequest productDTORequest;
     private ProductDTOResponse productDTOResponse;
+    private ProductUpdateDTORequest productUpdateDTORequest;
     private Long vendorId = 1L;
     private Long productTypeId = 1L;
     private Long productId = 1L;
@@ -101,25 +103,27 @@ public class ProductServiceImplTest {
         productDTOResponse.setProductTypeId(productTypeId);
         productDTOResponse.setPrice(new BigDecimal("10"));
         productDTOResponse.setStatus(ActiveStatus.ACTIVE);
+
+        productUpdateDTORequest = new ProductUpdateDTORequest();
+        productUpdateDTORequest.setName("Updated Latte");
+        productUpdateDTORequest.setDescription("Fresh espresso with steamed milk");
     }
-    // ... continuarea clasei tale după getById_shouldReturnProductById
+
 
     @Test
     void shouldSaveProductWithOwnNameAndDescription_WhenDataIsValid() {
-        // Arrange
+
         productDTORequest.setName("Special Latte");
         productDTORequest.setDescription("Artisan coffee blend with oat milk");
 
         product.setName("Special Latte");
         product.setDescription("Artisan coffee blend with oat milk");
-
         savedProduct.setName("Special Latte");
         savedProduct.setDescription("Artisan coffee blend with oat milk");
 
         productDTOResponse.setName("Special Latte");
         productDTOResponse.setDescription("Artisan coffee blend with oat milk");
 
-        // Setăm un nume diferit pe ProductType pentru a demonstra independența valorilor din cerință
         productType.setName("Dairy Category");
 
         when(vendorRepository.findById(vendorId)).thenReturn(Optional.of(vendor));
@@ -128,14 +132,14 @@ public class ProductServiceImplTest {
         when(productRepository.save(product)).thenReturn(savedProduct);
         when(productMapper.toDTO(savedProduct)).thenReturn(productDTOResponse);
 
-        // Act
+
         ProductDTOResponse result = productService.save(productDTORequest);
 
-        // Assert
+
         assertNotNull(result);
         assertEquals("Special Latte", result.getName());
         assertEquals("Artisan coffee blend with oat milk", result.getDescription());
-        // Verificăm regula de business: numele produsului este independent de numele tipului de produs
+
         assertNotEquals(productType.getName(), result.getName());
 
         verify(productRepository).save(product);
@@ -146,7 +150,7 @@ public class ProductServiceImplTest {
     void shouldSaveProductWithoutDescription_WhenDescriptionIsMissing() {
         // Arrange
         productDTORequest.setName("Latte");
-        productDTORequest.setDescription(null); // Description este opțional
+        productDTORequest.setDescription(null);
 
         product.setName("Latte");
         product.setDescription(null);
@@ -378,4 +382,53 @@ public class ProductServiceImplTest {
         verify(batchRepository).existsByProductId(productId);
         verify(productRepository, never()).deleteById(anyLong());
     }
+
+    //TEST FOR UPDATE
+    @Test
+    void updateProduct_shouldApplyProvidedFields_whenDataIsValid() {
+        product.setName("Updated Latte");
+        product.setDescription("Fresh espresso with steamed milk");
+        savedProduct.setName("Updated Latte");
+        savedProduct.setDescription("Fresh espresso with steamed milk");
+        productDTOResponse.setName("Updated Latte");
+        productDTOResponse.setDescription("Fresh espresso with steamed milk");
+        when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(savedProduct);
+        when(productMapper.toDTO(savedProduct)).thenReturn(productDTOResponse);
+        ProductDTOResponse result = productService.updateProduct(productId, productUpdateDTORequest);
+        assertNotNull(result);
+        assertEquals("Updated Latte", result.getName());
+        assertEquals("Fresh espresso with steamed milk", result.getDescription());
+        verify(productRepository).findById(productId);
+        verify(productRepository).save(savedProduct);
+        verify(productMapper).toDTO(savedProduct);
+    }
+    @Test
+    void updateProduct_shouldThrowResourceNotFoundException_whenIdIsUnknown() {
+        when(productRepository.findById(999L)).thenReturn(Optional.empty());
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> productService.updateProduct(999L, productUpdateDTORequest));
+        assertEquals("Product was not found", exception.getMessage());
+        verify(productRepository).findById(999L);
+        verify(productRepository, never()).save(any(Product.class));
+        verifyNoInteractions(productMapper);
+    }
+    @Test
+    void updateProduct_shouldKeepDescriptionUnchanged_whenOptionalDescriptionIsMissing() {
+        productUpdateDTORequest.setDescription(null);
+        productUpdateDTORequest.setName("Partial Updated Latte");
+        savedProduct.setName("Old Name");
+        savedProduct.setDescription("This description must remain untouched");
+        productDTOResponse.setName("Partial Updated Latte");
+        productDTOResponse.setDescription("This description must remain untouched");
+        when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(savedProduct);
+        when(productMapper.toDTO(savedProduct)).thenReturn(productDTOResponse);
+        ProductDTOResponse result = productService.updateProduct(productId, productUpdateDTORequest);
+        assertNotNull(result);
+        assertEquals("Partial Updated Latte", result.getName());
+        assertEquals("This description must remain untouched", result.getDescription());
+        verify(productRepository).save(savedProduct);
+    }
+
 }

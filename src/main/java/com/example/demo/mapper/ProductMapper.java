@@ -56,7 +56,7 @@ public class ProductMapper {
         ProductFilterDTOResponse productFilter = new ProductFilterDTOResponse();
 
         productFilter.setId(product.getId());
-        productFilter.setName(productFilter.getName());
+        productFilter.setName(product.getName());
         productFilter.setDescription(product.getDescription());
         productFilter.setPrice(product.getPrice());
         productFilter.setStatus(product.getActiveStatus());
