@@ -11,6 +11,7 @@ import com.example.demo.entities.Vendor;
 import com.example.demo.exception.EntityInUseException;
 import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.exception.ResponseStatusException;
 import com.example.demo.mapper.ProductMapper;
 import com.example.demo.repository.BatchRepository;
 import com.example.demo.repository.ProductRepository;
@@ -20,9 +21,11 @@ import com.example.demo.service.impl.ProductServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.math.BigDecimal;
@@ -414,26 +417,7 @@ public class ProductServiceImplTest {
         verifyNoInteractions(productMapper);
     }
     @Test
-    void updateProduct_shouldKeepDescriptionUnchanged_whenOptionalDescriptionIsMissing() {
-        productUpdateDTORequest.setDescription(null);
-        productUpdateDTORequest.setName("Partial Updated Latte");
-        savedProduct.setName("Old Name");
-        savedProduct.setDescription("This description must remain untouched");
-        productDTOResponse.setName("Partial Updated Latte");
-        productDTOResponse.setDescription("This description must remain untouched");
-        when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
-        when(productRepository.save(any(Product.class))).thenReturn(savedProduct);
-        when(productMapper.toDTO(savedProduct)).thenReturn(productDTOResponse);
-        ProductDTOResponse result = productService.updateProduct(productId, productUpdateDTORequest);
-        assertNotNull(result);
-        assertEquals("Partial Updated Latte", result.getName());
-        assertEquals("This description must remain untouched", result.getDescription());
-        verify(productRepository).save(savedProduct);
-    }
-
-    @Test
     void updateProduct_shouldKeepNameUnchanged_whenNameIsAbsent() {
-
         productUpdateDTORequest.setName(null);
         productUpdateDTORequest.setDescription("New description text");
 
@@ -447,19 +431,24 @@ public class ProductServiceImplTest {
         when(productRepository.save(any(Product.class))).thenReturn(savedProduct);
         when(productMapper.toDTO(savedProduct)).thenReturn(productDTOResponse);
 
+
         ProductDTOResponse result = productService.updateProduct(productId, productUpdateDTORequest);
 
+
         assertNotNull(result);
-        assertEquals("Latte", result.getName());
-        assertEquals("New description text", result.getDescription());
+
+        ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
+        verify(productRepository).save(captor.capture());
+
+        assertEquals("Latte", captor.getValue().getName());
+        assertEquals("New description text", captor.getValue().getDescription());
 
         verify(productRepository).findById(productId);
-        verify(productRepository).save(savedProduct);
         verify(productMapper).toDTO(savedProduct);
     }
 
     @Test
-    void updateProduct_shouldThrowResourceNotFoundException_whenNameIsPresentButBlank() {
+    void updateProduct_shouldThrowBadRequest_whenNameIsPresentButBlank() {
 
         productUpdateDTORequest.setName("   ");
         productUpdateDTORequest.setDescription("Valid description");
@@ -468,10 +457,63 @@ public class ProductServiceImplTest {
 
         when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
                 () -> productService.updateProduct(productId, productUpdateDTORequest));
 
-        assertEquals("Empty name", exception.getMessage());
+        assertEquals("Missing statement", exception.getMessage());
+
+        verify(productRepository).findById(productId);
+        verify(productRepository, never()).save(any(Product.class));
+        verifyNoInteractions(productMapper);
+    }
+
+    @Test
+    void updateProduct_shouldKeepDescriptionUnchanged_whenDescriptionIsAbsent() {
+        // Arrange
+        productUpdateDTORequest.setName("New Latte Name");
+        productUpdateDTORequest.setDescription(null);
+
+        savedProduct.setName("Latte");
+        savedProduct.setDescription("Old Description");
+
+        productDTOResponse.setName("New Latte Name");
+        productDTOResponse.setDescription("Old Description");
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(savedProduct);
+        when(productMapper.toDTO(savedProduct)).thenReturn(productDTOResponse);
+
+        // Act
+        ProductDTOResponse result = productService.updateProduct(productId, productUpdateDTORequest);
+
+        assertNotNull(result);
+
+        ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
+        verify(productRepository).save(captor.capture());
+
+        assertEquals("New Latte Name", captor.getValue().getName());
+        assertEquals("Old Description", captor.getValue().getDescription());
+
+        verify(productRepository).findById(productId);
+        verify(productMapper).toDTO(savedProduct);
+    }
+
+    @Test
+    void updateProduct_shouldThrowResourceNotFoundException_whenDescriptionIsPresentButBlank() {
+        // Arrange
+        productUpdateDTORequest.setName("Valid Name");
+        productUpdateDTORequest.setDescription("   ");
+
+        savedProduct.setName("Latte");
+        savedProduct.setDescription("Old Description");
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(savedProduct));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> productService.updateProduct(productId, productUpdateDTORequest));
+
+        assertEquals("Missing statement", exception.getMessage());
+
         verify(productRepository).findById(productId);
         verify(productRepository, never()).save(any(Product.class));
         verifyNoInteractions(productMapper);

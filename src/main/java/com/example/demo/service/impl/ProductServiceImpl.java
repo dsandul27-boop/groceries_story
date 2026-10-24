@@ -8,6 +8,7 @@ import com.example.demo.entities.*;
 import com.example.demo.exception.EntityInUseException;
 import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.exception.ResponseStatusException;
 import com.example.demo.mapper.ProductMapper;
 import com.example.demo.repository.*;
 import com.example.demo.service.ProductService;
@@ -137,21 +138,20 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = optionalProduct.get();
 
-        product.setName(updateDTORequest.getName());
-
         if (updateDTORequest.getName() != null) {
             if (updateDTORequest.getName().isBlank()) {
-                throw new ResourceNotFoundException("Empty name");
+                throw new ResponseStatusException("Missing statement");
             }
             product.setName(updateDTORequest.getName());
         }
-
         if (updateDTORequest.getDescription() != null) {
             if (updateDTORequest.getDescription().isBlank()) {
-                throw new ResourceNotFoundException("Empty description");
+                throw new ResponseStatusException("Missing statement");
             }
+                product.setDescription(updateDTORequest.getDescription());
         }
-        product.setDescription(updateDTORequest.getDescription());
         return productMapper.toDTO(productRepository.save(product));
     }
+
+
 }
