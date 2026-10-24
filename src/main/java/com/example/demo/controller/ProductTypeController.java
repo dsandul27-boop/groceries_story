@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/product_type")
+@RequestMapping("/product-type")
 public class ProductTypeController {
 
 
@@ -26,7 +26,7 @@ public class ProductTypeController {
     }
 
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
-    @PostMapping("/save-product-type")
+    @PostMapping
     public ResponseEntity<ProductTypeDTOResponse> save(@Valid @RequestBody ProductTypeDTORequest productTypeDTORequest) {
         ProductTypeDTOResponse productTypeDTOResponse = productTypeService.save(productTypeDTORequest);
         return new ResponseEntity<>(productTypeDTOResponse, HttpStatus.CREATED);
@@ -39,7 +39,7 @@ public class ProductTypeController {
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'ADMIN')")
-    @GetMapping("/get-product-type-by-id/{productTypeId}")
+    @GetMapping("/{productTypeId}")
     public ResponseEntity<ProductTypeDTOResponse> getById(@PathVariable @Positive(message = "ID must be positive") Long productTypeId) {
         ProductTypeDTOResponse productTypeDTOResponse = productTypeService.getById(productTypeId);
         return new ResponseEntity<>(productTypeDTOResponse, HttpStatus.OK);

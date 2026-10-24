@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.request.ProductDTORequest;
+import com.example.demo.dto.request.ProductUpdateDTORequest;
 import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.dto.response.ProductFilterDTOResponse;
 
@@ -20,5 +21,7 @@ public interface ProductService {
     void softDelete(Long productDTOId);
 
     List<ProductFilterDTOResponse> getProductFilter();
+
+    ProductDTOResponse updateProduct(Long productId, ProductUpdateDTORequest updateDTORequest);
 
 }

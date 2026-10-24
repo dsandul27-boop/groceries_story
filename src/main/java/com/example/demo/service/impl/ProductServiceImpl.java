@@ -1,20 +1,16 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.dto.request.ProductDTORequest;
+import com.example.demo.dto.request.ProductUpdateDTORequest;
 import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.dto.response.ProductFilterDTOResponse;
-import com.example.demo.entities.ActiveStatus;
-import com.example.demo.entities.Product;
-import com.example.demo.entities.ProductType;
-import com.example.demo.entities.Vendor;
+import com.example.demo.entities.*;
 import com.example.demo.exception.EntityInUseException;
 import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.exception.NotBlankException;
 import com.example.demo.mapper.ProductMapper;
-import com.example.demo.repository.BatchRepository;
-import com.example.demo.repository.ProductRepository;
-import com.example.demo.repository.ProductTypeRepository;
-import com.example.demo.repository.VendorRepository;
+import com.example.demo.repository.*;
 import com.example.demo.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,15 +28,17 @@ public class ProductServiceImpl implements ProductService {
     private final VendorRepository vendorRepository;
     private final BatchRepository batchRepository;
     private final ProductTypeRepository productTypeRepository;
+    private final UserRepository userRepository;
 
 
     @Autowired
-    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper, VendorRepository vendorRepository, BatchRepository batchRepository, ProductTypeRepository productTypeRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper, VendorRepository vendorRepository, BatchRepository batchRepository, ProductTypeRepository productTypeRepository, UserRepository userRepository) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
         this.vendorRepository = vendorRepository;
         this.batchRepository = batchRepository;
         this.productTypeRepository = productTypeRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -123,10 +121,37 @@ public class ProductServiceImpl implements ProductService {
             throw new ResourceNotFoundException("Product list is empty");
         }
 
-        for (Product product : productList){
+        for (Product product : productList) {
             productFilterList.add(productMapper.toFilterDTO(product));
         }
 
         return productFilterList;
     }
+
+    @Override
+    public ProductDTOResponse updateProduct(Long productId, ProductUpdateDTORequest updateDTORequest) {
+        Optional<Product> optionalProduct = productRepository.findById(productId);
+
+        if (optionalProduct.isEmpty()) {
+            throw new ResourceNotFoundException("Product was not found");
+        }
+
+        Product product = optionalProduct.get();
+
+        if (updateDTORequest.getName() != null) {
+            if (updateDTORequest.getName().isBlank()) {
+                throw new NotBlankException("Missing statement");
+            }
+            product.setName(updateDTORequest.getName());
+        }
+        if (updateDTORequest.getDescription() != null) {
+            if (updateDTORequest.getDescription().isBlank()) {
+                throw new NotBlankException("Missing statement");
+            }
+                product.setDescription(updateDTORequest.getDescription());
+        }
+        return productMapper.toDTO(productRepository.save(product));
+    }
+
+
 }

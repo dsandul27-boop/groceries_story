@@ -31,7 +31,7 @@ public class ProductRepositoryTest {
         category = entityManager.persistAndFlush(category);
 
         ProductType productType = new ProductType();
-        productType.setActiveStatus(ActiveStatus.ACTIVE);
+        productType.setStatus(ActiveStatus.ACTIVE);
         productType.setName("Milk");
         productType.setCategory(category);
         productType = entityManager.persistAndFlush(productType);
@@ -42,6 +42,8 @@ public class ProductRepositoryTest {
         vendor = entityManager.persistAndFlush(vendor);
 
         Product product = new Product();
+        product.setName("Milk");
+        product.setDescription("White milk");
         product.setActiveStatus(ActiveStatus.INACTIVE);
         product.setCreatedAt(Instant.now());
         product.setProductType(productType);

@@ -48,7 +48,8 @@ public class ProductTypeServiceImpl implements ProductTypeService {
                 new ResourceNotFoundException("Category not found by Id"));
         ProductType productType = productTypeMapper.toEntity(productTypeDTORequest);
         productType.setCategory(category);
-        productType.setActiveStatus(ActiveStatus.ACTIVE);
+        productType.setDescription(productTypeDTORequest.getDescription());
+        productType.setStatus(ActiveStatus.ACTIVE);
         ProductType productTypeResponse = productTypeRepository.save(productType);
         return productTypeMapper.toDTO(productTypeResponse);
     }
@@ -96,10 +97,10 @@ public class ProductTypeServiceImpl implements ProductTypeService {
             throw new ResourceNotFoundException("Doesn't exist");
         }
         ProductType productType = optionalProductType.get();
-        if (productType.getActiveStatus().equals(ActiveStatus.INACTIVE)) {
+        if (productType.getStatus().equals(ActiveStatus.INACTIVE)) {
             throw new IsInactiveException("Product type is already inactive");
         }
-        productType.setActiveStatus(ActiveStatus.INACTIVE);
+        productType.setStatus(ActiveStatus.INACTIVE);
         productTypeRepository.save(productType);
     }
 

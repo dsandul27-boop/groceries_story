@@ -12,11 +12,21 @@ import java.time.Instant;
 public class ProductDTOResponse {
 
     private Long id;
+
+    private String name;
+
+    private String description;
+
     private Long vendorId;
+
     private Long productTypeId;
+
     private BigDecimal price;
+
     private ActiveStatus status;
+
     private Instant createdAt;
+
     private Long quantity;
 
 }
