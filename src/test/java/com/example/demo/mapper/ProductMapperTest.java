@@ -2,6 +2,7 @@ package com.example.demo.mapper;
 
 import com.example.demo.dto.request.ProductDTORequest;
 import com.example.demo.dto.response.ProductDTOResponse;
+import com.example.demo.dto.response.ProductFilterDTOResponse;
 import com.example.demo.entities.ActiveStatus;
 import com.example.demo.entities.Product;
 import com.example.demo.entities.ProductType;
@@ -16,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 
@@ -44,14 +46,17 @@ public class ProductMapperTest {
         vendor.setId(5L);
         vendor.setName("Latti");
 
+
         ProductType productType = new ProductType();
         productType.setId(7L);
-        productType.setName("Milk");
+        productType.setName("Dairy Subcategory");
 
         createdAt = Instant.parse("2024-01-15T10:00:00Z");
 
         product = new Product();
         product.setId(1L);
+        product.setName("Milk");
+        product.setDescription("White milk");
         product.setVendor(vendor);
         product.setProductType(productType);
         product.setPrice(new BigDecimal("10"));
@@ -59,6 +64,8 @@ public class ProductMapperTest {
         product.setCreatedAt(createdAt);
 
         productDTORequest = new ProductDTORequest();
+        productDTORequest.setName("Milk");
+        productDTORequest.setDescription("White milk");
         productDTORequest.setVendorId(5L);
         productDTORequest.setProductTypeId(7L);
         productDTORequest.setPrice(new BigDecimal("10"));
@@ -66,25 +73,48 @@ public class ProductMapperTest {
 
     @Test
     void toDTO_shouldMapProductToDTOResponse() {
-
         ProductDTOResponse result = productMapper.toDTO(product);
 
+        assertEquals("Milk", result.getName());
+        assertEquals("White milk", result.getDescription());
         assertEquals(1L, result.getId());
         assertEquals(5L, result.getVendorId());
         assertEquals(7L, result.getProductTypeId());
         assertEquals(new BigDecimal("10"), result.getPrice());
         assertEquals(ActiveStatus.ACTIVE, result.getStatus());
         assertEquals(createdAt, result.getCreatedAt());
+
+        assertNotEquals(product.getProductType().getName(), result.getName());
     }
 
     @Test
     void toEntity_shouldMapDTORequestToProduct() {
-
         Product result = productMapper.toEntity(productDTORequest);
 
+        assertEquals("Milk", result.getName());
+        assertEquals("White milk", result.getDescription());
         assertEquals(new BigDecimal("10"), result.getPrice());
         assertNull(result.getVendor());
         assertNull(result.getProductType());
         assertNull(result.getActiveStatus());
+    }
+
+    @Test
+    void toFilterProductDTOResponse_shouldMapFilterDTORequestToProduct() {
+        ProductFilterDTOResponse result = productMapper.toFilterDTO(product);
+
+
+        assertEquals("Milk", result.getName());
+        assertEquals("White milk", result.getDescription());
+        assertEquals(new BigDecimal("10"), result.getPrice());
+        assertEquals(ActiveStatus.ACTIVE, result.getStatus());
+
+        assertEquals(5L, result.getVendorFilterDTOResponse().getId());
+        assertEquals("Latti", result.getVendorFilterDTOResponse().getName());
+
+        assertEquals(7L, result.getProductTypeFilterDTOResponse().getId());
+        assertEquals("Dairy Subcategory", result.getProductTypeFilterDTOResponse().getName());
+
+        assertNotEquals(product.getProductType().getName(), result.getName());
     }
 }

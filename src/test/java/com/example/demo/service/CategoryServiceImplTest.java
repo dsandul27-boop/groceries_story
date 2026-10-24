@@ -71,9 +71,9 @@ public class CategoryServiceImplTest {
         productType = new ProductType();
         productType.setName("Milk");
         productType.setCategory(category);
-        productType.setProductDescription("ok");
+        productType.setDescription("ok");
         productType.setId(1L);
-        productType.setActiveStatus(ActiveStatus.ACTIVE);
+        productType.setStatus(ActiveStatus.ACTIVE);
     }
 
     @Test

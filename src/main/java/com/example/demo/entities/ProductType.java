@@ -18,7 +18,7 @@ public class ProductType {
     private String name;
 
     @Column(name = "description", length = 500)
-    private String productDescription;
+    private String description;
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
@@ -26,6 +26,6 @@ public class ProductType {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private ActiveStatus activeStatus;
+    private ActiveStatus status;
 
 }

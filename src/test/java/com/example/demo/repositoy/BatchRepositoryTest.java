@@ -2,8 +2,6 @@ package com.example.demo.repositoy;
 
 import com.example.demo.entities.*;
 import com.example.demo.repository.BatchRepository;
-import com.example.demo.repository.ProductRepository;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -34,7 +32,7 @@ public class BatchRepositoryTest {
         category = entityManager.persistAndFlush(category);
 
         ProductType productType = new ProductType();
-        productType.setActiveStatus(ActiveStatus.ACTIVE);
+        productType.setStatus(ActiveStatus.ACTIVE);
         productType.setName("Milk");
         productType.setCategory(category);
         productType = entityManager.persistAndFlush(productType);
@@ -45,6 +43,8 @@ public class BatchRepositoryTest {
         vendor = entityManager.persistAndFlush(vendor);
 
         Product product = new Product();
+        product.setName("Milk");
+        product.setDescription("White milk");
         product.setActiveStatus(ActiveStatus.INACTIVE);
         product.setCreatedAt(Instant.now());
         product.setProductType(productType);

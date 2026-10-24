@@ -15,8 +15,8 @@ public class ProductTypeMapper {
         productTypeDTOResponse.setId(productType.getId());
         productTypeDTOResponse.setName(productType.getName());
         productTypeDTOResponse.setCategoryId(productType.getCategory().getId());
-        productTypeDTOResponse.setDescription(productType.getProductDescription());
-        productTypeDTOResponse.setStatus(productType.getActiveStatus());
+        productTypeDTOResponse.setDescription(productType.getDescription());
+        productTypeDTOResponse.setStatus(productType.getStatus());
         return productTypeDTOResponse;
     }
 
@@ -25,14 +25,14 @@ public class ProductTypeMapper {
     public ProductType toEntity(ProductTypeDTORequest productTypeDTORequest) {
         ProductType productType = new ProductType();
         productType.setName(productTypeDTORequest.getName());
-        productType.setProductDescription(productTypeDTORequest.getDescription());
+        productType.setDescription(productTypeDTORequest.getDescription());
         return productType;
     }
 
     public ProductType toEntity(ProductTypeDTOResponse productTypeDTOResponse) {
         ProductType productType = new ProductType();
         productType.setName(productTypeDTOResponse.getName());
-        productType.setProductDescription(productTypeDTOResponse.getDescription());
+        productType.setDescription(productTypeDTOResponse.getDescription());
         return productType;
     }
 
@@ -41,8 +41,8 @@ public class ProductTypeMapper {
 
         response.setId(productType.getId());
         response.setName(productType.getName());
-        response.setDescription(productType.getProductDescription());
-        response.setStatus(productType.getActiveStatus());
+        response.setDescription(productType.getDescription());
+        response.setStatus(productType.getStatus());
         return response;
     }
 }

@@ -12,7 +12,9 @@ public class ProductTypeDTORequest {
 
     @NotBlank(message = "Missing field name")
     private String name;
+
     private String description;
+
     @NotNull(message = "Missing field categoryId")
     @Positive
     private Long categoryId;

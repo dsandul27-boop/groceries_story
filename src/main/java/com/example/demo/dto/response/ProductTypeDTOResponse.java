@@ -9,9 +9,13 @@ import lombok.NoArgsConstructor;
 public class ProductTypeDTOResponse {
 
     private Long id;
+
     private String name;
+
     private String description;
+
     private Long categoryId;
+
     private ActiveStatus status;
 
 }
