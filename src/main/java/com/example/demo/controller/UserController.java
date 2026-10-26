@@ -47,7 +47,7 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+
     @PostMapping("/create")
     public ResponseEntity<UserDTOResponse> masterRegister(@Valid @RequestBody UserDTORequest userDTORequest){
         User user = new User();

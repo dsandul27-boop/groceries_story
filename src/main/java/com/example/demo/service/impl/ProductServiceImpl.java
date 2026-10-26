@@ -1,3 +1,4 @@
+
 package com.example.demo.service.impl;
 
 import com.example.demo.dto.request.ProductDTORequest;
@@ -10,10 +11,13 @@ import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.exception.NotBlankException;
 import com.example.demo.mapper.ProductMapper;
+import com.example.demo.media.MediaStorage;
 import com.example.demo.repository.*;
 import com.example.demo.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -29,33 +33,50 @@ public class ProductServiceImpl implements ProductService {
     private final BatchRepository batchRepository;
     private final ProductTypeRepository productTypeRepository;
     private final UserRepository userRepository;
-
+    private final MediaStorage mediaStorage;
 
     @Autowired
-    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper, VendorRepository vendorRepository, BatchRepository batchRepository, ProductTypeRepository productTypeRepository, UserRepository userRepository) {
+    public ProductServiceImpl(
+            ProductRepository productRepository,
+            ProductMapper productMapper,
+            VendorRepository vendorRepository,
+            BatchRepository batchRepository,
+            ProductTypeRepository productTypeRepository,
+            UserRepository userRepository,
+            MediaStorage mediaStorage) {
+
         this.productRepository = productRepository;
         this.productMapper = productMapper;
         this.vendorRepository = vendorRepository;
         this.batchRepository = batchRepository;
         this.productTypeRepository = productTypeRepository;
         this.userRepository = userRepository;
+        this.mediaStorage = mediaStorage;
     }
 
     @Override
     public ProductDTOResponse save(ProductDTORequest productDTORequest) {
-        Optional<Vendor> vendorOptional = vendorRepository.findById(productDTORequest.getVendorId());
+        Optional<Vendor> vendorOptional =
+                vendorRepository.findById(productDTORequest.getVendorId());
+
         if (vendorOptional.isEmpty()) {
             throw new ResourceNotFoundException("Vendor is empty");
         }
-        Optional<ProductType> productTypeOptional = (productTypeRepository.findById(productDTORequest.getProductTypeId()));
+
+        Optional<ProductType> productTypeOptional =
+                productTypeRepository.findById(
+                        productDTORequest.getProductTypeId());
+
         if (productTypeOptional.isEmpty()) {
             throw new ResourceNotFoundException("Product type is empty");
         }
+
         Product product = productMapper.toEntity(productDTORequest);
         product.setVendor(vendorOptional.get());
         product.setProductType(productTypeOptional.get());
         product.setActiveStatus(ActiveStatus.INACTIVE);
         product.setCreatedAt(Instant.now());
+
         return productMapper.toDTO(productRepository.save(product));
     }
 
@@ -63,6 +84,7 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductDTOResponse> getAll() {
         List<ProductDTOResponse> productDTOResponseList = new ArrayList<>();
         List<Product> productList = productRepository.findAll();
+
         if (productList.isEmpty()) {
             throw new ResourceNotFoundException("No one product found");
         }
@@ -70,19 +92,25 @@ public class ProductServiceImpl implements ProductService {
         for (Product product : productList) {
             productDTOResponseList.add(productMapper.toDTO(product));
         }
+
         return productDTOResponseList;
     }
 
     @Override
     public ProductDTOResponse getById(Long productId) {
-        Optional<Product> optionalProduct = productRepository.findById(productId);
+        Optional<Product> optionalProduct =
+                productRepository.findById(productId);
+
         if (optionalProduct.isEmpty()) {
             throw new ResourceNotFoundException("Product was not found");
         }
 
-        Long productSumQuantity = batchRepository.sumQuantityByProductId(productId);
+        Long productSumQuantity =
+                batchRepository.sumQuantityByProductId(productId);
 
-        ProductDTOResponse productDTOResponse = productMapper.toDTO(optionalProduct.get());
+        ProductDTOResponse productDTOResponse =
+                productMapper.toDTO(optionalProduct.get());
+
         productDTOResponse.setQuantity(productSumQuantity);
         return productDTOResponse;
     }
@@ -90,25 +118,34 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void hardDelete(Long productId) {
         if (!productRepository.existsById(productId)) {
-            throw new ResourceNotFoundException("Product already doesn't exist");
+            throw new ResourceNotFoundException(
+                    "Product already doesn't exist");
         }
+
         boolean existBatch = batchRepository.existsByProductId(productId);
+
         if (existBatch) {
             throw new EntityInUseException("Exist batch dependencies");
         }
+
         productRepository.deleteById(productId);
     }
 
     @Override
     public void softDelete(Long productId) {
-        Optional<Product> optionalProduct = productRepository.findById(productId);
+        Optional<Product> optionalProduct =
+                productRepository.findById(productId);
+
         if (optionalProduct.isEmpty()) {
             throw new ResourceNotFoundException("Doesn't exist");
         }
+
         Product product = optionalProduct.get();
+
         if (product.getActiveStatus().equals(ActiveStatus.INACTIVE)) {
             throw new IsInactiveException("Product is already inactive");
         }
+
         product.setActiveStatus(ActiveStatus.INACTIVE);
         productRepository.save(product);
     }
@@ -117,6 +154,7 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductFilterDTOResponse> getProductFilter() {
         List<ProductFilterDTOResponse> productFilterList = new ArrayList<>();
         List<Product> productList = productRepository.findAll();
+
         if (productList.isEmpty()) {
             throw new ResourceNotFoundException("Product list is empty");
         }
@@ -129,8 +167,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductDTOResponse updateProduct(Long productId, ProductUpdateDTORequest updateDTORequest) {
-        Optional<Product> optionalProduct = productRepository.findById(productId);
+    public ProductDTOResponse updateProduct(
+            Long productId,
+            ProductUpdateDTORequest updateDTORequest) {
+
+        Optional<Product> optionalProduct =
+                productRepository.findById(productId);
 
         if (optionalProduct.isEmpty()) {
             throw new ResourceNotFoundException("Product was not found");
@@ -144,14 +186,71 @@ public class ProductServiceImpl implements ProductService {
             }
             product.setName(updateDTORequest.getName());
         }
+
         if (updateDTORequest.getDescription() != null) {
             if (updateDTORequest.getDescription().isBlank()) {
                 throw new NotBlankException("Missing statement");
             }
-                product.setDescription(updateDTORequest.getDescription());
+            product.setDescription(updateDTORequest.getDescription());
         }
+
         return productMapper.toDTO(productRepository.save(product));
     }
 
 
+    @Override
+    @Transactional
+    public ProductDTOResponse uploadProductImage(
+            Long productId,
+            MultipartFile file) {
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Product was not found"));
+
+        String oldImageUrl = product.getImageUrl();
+
+        String newImageUrl =
+                mediaStorage.storeProductImage(productId, file);
+
+        Product savedProduct;
+
+        try {
+            product.setImageUrl(newImageUrl);
+            savedProduct = productRepository.save(product);
+
+        } catch (RuntimeException exception) {
+            mediaStorage.deleteProductImage(newImageUrl);
+            throw exception;
+        }
+
+        if (oldImageUrl != null && !oldImageUrl.equals(newImageUrl)) {
+            mediaStorage.deleteProductImage(oldImageUrl);
+        }
+
+        return productMapper.toDTO(savedProduct);
+    }
+
+
+    @Override
+    @Transactional
+    public ProductDTOResponse deleteProductImage(Long productId) {
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Product was not found"));
+
+        String oldImageUrl = product.getImageUrl();
+
+        product.setImageUrl(null);
+        Product savedProduct = productRepository.save(product);
+
+        if (oldImageUrl != null) {
+            mediaStorage.deleteProductImage(oldImageUrl);
+        }
+
+        return productMapper.toDTO(savedProduct);
+    }
 }

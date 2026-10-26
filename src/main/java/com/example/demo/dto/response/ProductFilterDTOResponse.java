@@ -1,6 +1,7 @@
 package com.example.demo.dto.response;
 
 import com.example.demo.entities.ActiveStatus;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -26,4 +27,6 @@ public class ProductFilterDTOResponse {
     private ActiveStatus status;
 
     private Instant createdAt;
+
+    private String imageUrl;
 }

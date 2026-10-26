@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -26,6 +27,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,6 +44,15 @@ public class ProductControllerTest {
 
     @MockitoBean
     private JwtUtil jwtUtil;
+
+    private MockMultipartFile createImage() {
+        return new MockMultipartFile(
+                "file",
+                "milk.png",
+                MediaType.IMAGE_PNG_VALUE,
+                new byte[]{1, 2, 3}
+        );
+    }
 
     ProductDTORequest productDTORequest = new ProductDTORequest();
     ProductDTOResponse productDTOResponse = new ProductDTOResponse();
@@ -264,7 +275,6 @@ public class ProductControllerTest {
     }
 
 
-
     @Test
     @WithMockUser(roles = {"CUSTOMER"})
     void update_shouldReturn403_whenUserIsCustomer() throws Exception {
@@ -279,6 +289,60 @@ public class ProductControllerTest {
                                         """)
                 )
                 .andExpect(status().isForbidden());
+        verifyNoInteractions(productService);
+    }
+
+    //TEST FOR IMAGE UPLOAD AND DELETE
+
+    @Test
+    @WithMockUser(roles = {"STAFF"})
+    void deleteProductImage_asStaff_returns200() throws Exception {
+        when(productService.deleteProductImage(1L))
+                .thenReturn(productDTOResponse);
+
+        mockMvc.perform(delete(
+                        "/product/delete-product-image/{productId}", 1L)
+                        .with(user("staff").roles("STAFF"))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        verify(productService).deleteProductImage(1L);
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    void deleteProductImage_asAdmin_returns200() throws Exception {
+        when(productService.deleteProductImage(1L))
+                .thenReturn(productDTOResponse);
+
+        mockMvc.perform(delete(
+                        "/product/delete-product-image/{productId}", 1L)
+                        .with(user("admin").roles("ADMIN"))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        verify(productService).deleteProductImage(1L);
+    }
+
+    @Test
+    @WithMockUser(roles = {"CUSTOMER"})
+    void deleteProductImage_asCustomer_returns403() throws Exception {
+        mockMvc.perform(delete(
+                        "/product/delete-product-image/{productId}", 1L)
+                        .with(user("customer").roles("CUSTOMER"))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(productService);
+    }
+
+    @Test
+    void deleteProductImage_unauthenticated_returns401() throws Exception {
+        mockMvc.perform(delete(
+                        "/product/delete-product-image/{productId}", 1L)
+                        .with(csrf()))
+                .andExpect(status().isUnauthorized());
+
         verifyNoInteractions(productService);
     }
 }

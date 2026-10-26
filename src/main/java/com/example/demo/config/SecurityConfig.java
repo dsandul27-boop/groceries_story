@@ -45,11 +45,12 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/register",
                                 "/swagger-ui/**",
-                                "/v3/**"
+                                "/v3/**",
+                                "/user/create",
+                                "/images/products/**",
+                                "/media/**"
                         ).permitAll()
-
                         .anyRequest().authenticated()
-
                 )
 
                 .addFilterBefore(

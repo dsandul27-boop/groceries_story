@@ -16,8 +16,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.security.access.AccessDeniedException;
-
-
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
@@ -43,6 +42,51 @@ public class GlobalExceptionHandler {
                 entyEx.getMessage()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidImageException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidImage(InvalidImageException exception) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Invalid image",
+                exception.getMessage()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+
+    @ExceptionHandler(ImageTooLargeException.class)
+    public ResponseEntity<ErrorResponse> handleImageTooLarge(
+            ImageTooLargeException exception) {
+
+        HttpStatus status = HttpStatus.PAYLOAD_TOO_LARGE;
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                status.value(),
+                "Too large image",
+                exception.getMessage()
+        );
+
+        return new ResponseEntity<>(errorResponse, status);
+    }
+
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(
+            MaxUploadSizeExceededException exception) {
+
+        HttpStatus status = HttpStatus.PAYLOAD_TOO_LARGE;
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                status.value(),
+                "Too large image",
+                "The uploaded file exceeds the maximum allowed size"
+        );
+
+        return new ResponseEntity<>(errorResponse, status);
     }
 
 
@@ -123,7 +167,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleInvalidCredentials(
-           BadCredentialsException exception) {
+            BadCredentialsException exception) {
 
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),

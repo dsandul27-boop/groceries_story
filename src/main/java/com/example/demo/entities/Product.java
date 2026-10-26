@@ -42,5 +42,8 @@ public class Product {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
 }
 
