@@ -12,6 +12,11 @@ import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.exception.NotBlankException;
 import com.example.demo.mapper.ProductMapper;
 import com.example.demo.media.MediaStorage;
+
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.example.demo.repository.*;
 import com.example.demo.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +32,7 @@ import java.util.Optional;
 @Service
 public class ProductServiceImpl implements ProductService {
 
+    private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final VendorRepository vendorRepository;
@@ -200,51 +206,34 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public ProductDTOResponse uploadProductImage(
-            Long productId,
-            MultipartFile file) {
-
+    public ProductDTOResponse uploadProductImage(Long productId, MultipartFile file) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Product was not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product was not found"));
 
         String oldImageUrl = product.getImageUrl();
         String newImageUrl = mediaStorage.storeProductImage(file);
-
         Product savedProduct;
 
         try {
             product.setImageUrl(newImageUrl);
             savedProduct = productRepository.saveAndFlush(product);
-
         } catch (RuntimeException exception) {
             mediaStorage.deleteProductImage(newImageUrl);
             throw exception;
         }
+
         if (oldImageUrl != null && !oldImageUrl.equals(newImageUrl)) {
-            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
-                    new org.springframework.transaction.support.TransactionSynchronization() {
-                        @Override
-                        public void afterCommit() {
-                            mediaStorage.deleteProductImage(oldImageUrl);
-                        }
-                    }
-            );
+            deleteImageAfterCommit(oldImageUrl);
         }
 
         return productMapper.toDTO(savedProduct);
     }
 
-
     @Override
     @Transactional
     public ProductDTOResponse deleteProductImage(Long productId) {
-
         Product product = productRepository.findById(productId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Product was not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product was not found"));
 
         String oldImageUrl = product.getImageUrl();
 
@@ -252,9 +241,27 @@ public class ProductServiceImpl implements ProductService {
         Product savedProduct = productRepository.save(product);
 
         if (oldImageUrl != null) {
-            mediaStorage.deleteProductImage(oldImageUrl);
+            deleteImageAfterCommit(oldImageUrl);
         }
 
         return productMapper.toDTO(savedProduct);
     }
+
+
+    private void deleteImageAfterCommit(String imageUrl) {
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            mediaStorage.deleteProductImage(imageUrl);
+                        } catch (RuntimeException ex) {
+                            log.warn("Failed to delete old product image {}", imageUrl, ex);
+                        }
+                    }
+                }
+        );
+    }
+
+
 }

@@ -91,7 +91,6 @@ public class ProductController {
         return new ResponseEntity<>(productDTOResponse, HttpStatus.OK);
     }
 
-
     @PreAuthorize("hasAnyRole('STAFF','ADMIN')")
     @DeleteMapping("/delete-product-image/{productId}")
     public ResponseEntity<ProductDTOResponse> deleteProductImage(

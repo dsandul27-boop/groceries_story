@@ -19,6 +19,7 @@ import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.ProductTypeRepository;
 import com.example.demo.repository.VendorRepository;
 import com.example.demo.service.impl.ProductServiceImpl;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -619,9 +620,10 @@ public class ProductServiceImplTest {
     @Test
     void deleteProductImage_success_withExistingImage() {
         Long productId = 1L;
+
         Product product = new Product();
         product.setId(productId);
-        product.setImageUrl("image-to-delete.jpg");
+        product.setImageUrl("old-image-url.jpg");
 
         Product savedProduct = new Product();
         savedProduct.setId(productId);
@@ -633,12 +635,20 @@ public class ProductServiceImplTest {
         when(productRepository.save(product)).thenReturn(savedProduct);
         when(productMapper.toDTO(savedProduct)).thenReturn(expectedResponse);
 
-        ProductDTOResponse actualResponse = productService.deleteProductImage(productId);
+        TransactionSynchronizationManager.initSynchronization();
 
-        assertNotNull(actualResponse);
-        assertNull(product.getImageUrl());
-        verify(mediaStorage, times(1)).deleteProductImage("image-to-delete.jpg");
+        try {
+            ProductDTOResponse actualResponse = productService.deleteProductImage(productId);
+
+            assertNotNull(actualResponse);
+            assertEquals(expectedResponse, actualResponse);
+            assertNull(product.getImageUrl());
+
+        } finally {
+            TransactionSynchronizationManager.clear();
+        }
     }
+
 
     @Test
     void deleteProductImage_success_noImage_doesNotDeleteFile() {

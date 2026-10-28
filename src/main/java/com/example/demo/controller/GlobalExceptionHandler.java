@@ -45,16 +45,27 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-        @ExceptionHandler(ResponseStatusException.class)
-        public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
-            return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
-        }
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException exception) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                exception.getStatusCode().value(),
+                "Response Status Error",
+                exception.getReason()
+        );
+        return new ResponseEntity<>(errorResponse, exception.getStatusCode());
+    }
 
-
-        @ExceptionHandler(org.springframework.web.HttpMediaTypeNotSupportedException.class)
-        public ResponseEntity<String> handleHttpMediaTypeNotSupported(org.springframework.web.HttpMediaTypeNotSupportedException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid media type format: " + ex.getMessage());
-        }
+    @ExceptionHandler(org.springframework.web.HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMediaTypeNotSupported(org.springframework.web.HttpMediaTypeNotSupportedException exception) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(),
+                "Unsupported Media Type",
+                "Invalid media type format: " + exception.getMessage()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+    }
 
     @ExceptionHandler(InvalidImageException.class)
     public ResponseEntity<ErrorResponse> handleInvalidImage(InvalidImageException exception) {
