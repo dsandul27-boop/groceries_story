@@ -1,4 +1,3 @@
-
 package com.example.demo.media;
 
 import com.example.demo.exception.ImageTooLargeException;
@@ -15,9 +14,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+
 
 class LocalMediaStorageTest {
 
@@ -47,7 +46,7 @@ class LocalMediaStorageTest {
                 imageBytes
         );
 
-        String imageUrl = storage.storeProductImage(1L, file);
+        String imageUrl = storage.storeProductImage( file);
 
         assertTrue(imageUrl.startsWith("/media/products/"));
         assertTrue(imageUrl.endsWith(".png"));
@@ -74,8 +73,8 @@ class LocalMediaStorageTest {
                 createPng()
         );
 
-        String firstUrl = storage.storeProductImage(1L, file);
-        String secondUrl = storage.storeProductImage(1L, file);
+        String firstUrl = storage.storeProductImage( file);
+        String secondUrl = storage.storeProductImage( file);
 
         assertNotEquals(firstUrl, secondUrl);
     }
@@ -92,7 +91,7 @@ class LocalMediaStorageTest {
 
         assertThrows(
                 InvalidImageException.class,
-                () -> storage.storeProductImage(1L, file)
+                () -> storage.storeProductImage( file)
         );
 
         assertFalse(Files.exists(tempDir.resolve("products")));
@@ -110,7 +109,7 @@ class LocalMediaStorageTest {
 
         assertThrows(
                 InvalidImageException.class,
-                () -> storage.storeProductImage(1L, file)
+                () -> storage.storeProductImage( file)
         );
 
         assertFalse(Files.exists(tempDir.resolve("products")));
@@ -128,7 +127,7 @@ class LocalMediaStorageTest {
 
         assertThrows(
                 InvalidImageException.class,
-                () -> storage.storeProductImage(1L, file)
+                () -> storage.storeProductImage( file)
         );
 
         assertFalse(Files.exists(tempDir.resolve("products")));
@@ -150,7 +149,7 @@ class LocalMediaStorageTest {
 
         assertThrows(
                 ImageTooLargeException.class,
-                () -> storage.storeProductImage(1L, file)
+                () -> storage.storeProductImage( file)
         );
 
         assertFalse(Files.exists(tempDir.resolve("products")));
@@ -167,7 +166,7 @@ class LocalMediaStorageTest {
                 createPng()
         );
 
-        String imageUrl = storage.storeProductImage(1L, file);
+        String imageUrl = storage.storeProductImage( file);
 
         String filename = imageUrl.substring(
                 "/media/products/".length()

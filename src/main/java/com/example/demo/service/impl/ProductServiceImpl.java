@@ -210,23 +210,27 @@ public class ProductServiceImpl implements ProductService {
                                 "Product was not found"));
 
         String oldImageUrl = product.getImageUrl();
-
-        String newImageUrl =
-                mediaStorage.storeProductImage(productId, file);
+        String newImageUrl = mediaStorage.storeProductImage(file);
 
         Product savedProduct;
 
         try {
             product.setImageUrl(newImageUrl);
-            savedProduct = productRepository.save(product);
+            savedProduct = productRepository.saveAndFlush(product);
 
         } catch (RuntimeException exception) {
             mediaStorage.deleteProductImage(newImageUrl);
             throw exception;
         }
-
         if (oldImageUrl != null && !oldImageUrl.equals(newImageUrl)) {
-            mediaStorage.deleteProductImage(oldImageUrl);
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                    new org.springframework.transaction.support.TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            mediaStorage.deleteProductImage(oldImageUrl);
+                        }
+                    }
+            );
         }
 
         return productMapper.toDTO(savedProduct);

@@ -37,7 +37,7 @@ public class LocalMediaStorage implements MediaStorage {
 
 
     @Override
-    public String storeProductImage(Long productId, MultipartFile file) {
+    public String storeProductImage(MultipartFile file) {
 
         if (file == null || file.isEmpty()) {
             throw new InvalidImageException("Image file is empty");
@@ -172,18 +172,21 @@ public class LocalMediaStorage implements MediaStorage {
     }
 
     private void validateWebpStructure(byte[] bytes) {
+        if (bytes == null || bytes.length < 20) {
+            throw new InvalidImageException("File has an invalid WebP structure");
+        }
+
         long declaredSize = Integer.toUnsignedLong(
                 (bytes[4] & 0xFF)
                         | ((bytes[5] & 0xFF) << 8)
                         | ((bytes[6] & 0xFF) << 16)
                         | ((bytes[7] & 0xFF) << 24));
 
-        if (declaredSize + 8 != bytes.length
-                || bytes.length < 20) {
-            throw new InvalidImageException(
-                    "File has an invalid WebP structure");
+        if (declaredSize + 8 > bytes.length) {
+            throw new InvalidImageException("File has an invalid WebP structure");
         }
     }
+
 
     @Override
     public void deleteProductImage(String imageUrl) {

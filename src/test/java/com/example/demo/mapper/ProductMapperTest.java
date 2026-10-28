@@ -62,6 +62,7 @@ public class ProductMapperTest {
         product.setPrice(new BigDecimal("10"));
         product.setActiveStatus(ActiveStatus.ACTIVE);
         product.setCreatedAt(createdAt);
+        product.setImageUrl("https://example.com");
 
         productDTORequest = new ProductDTORequest();
         productDTORequest.setName("Milk");
@@ -83,6 +84,7 @@ public class ProductMapperTest {
         assertEquals(new BigDecimal("10"), result.getPrice());
         assertEquals(ActiveStatus.ACTIVE, result.getStatus());
         assertEquals(createdAt, result.getCreatedAt());
+        assertEquals("https://example.com", result.getImageUrl());
 
         assertNotEquals(product.getProductType().getName(), result.getName());
     }
@@ -114,6 +116,7 @@ public class ProductMapperTest {
 
         assertEquals(7L, result.getProductTypeFilterDTOResponse().getId());
         assertEquals("Dairy Subcategory", result.getProductTypeFilterDTOResponse().getName());
+        assertEquals("https://example.com", result.getImageUrl());
 
         assertNotEquals(product.getProductType().getName(), result.getName());
     }

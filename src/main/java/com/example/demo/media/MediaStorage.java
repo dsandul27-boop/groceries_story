@@ -5,7 +5,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface MediaStorage {
 
-    String storeProductImage(Long productId, MultipartFile file);
+        String storeProductImage(MultipartFile file);
+
 
     void deleteProductImage(String imageUrl);
 }
