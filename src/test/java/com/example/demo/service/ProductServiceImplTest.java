@@ -13,11 +13,13 @@ import com.example.demo.exception.IsInactiveException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.exception.NotBlankException;
 import com.example.demo.mapper.ProductMapper;
+import com.example.demo.media.MediaStorage;
 import com.example.demo.repository.BatchRepository;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.ProductTypeRepository;
 import com.example.demo.repository.VendorRepository;
 import com.example.demo.service.impl.ProductServiceImpl;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +27,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -45,6 +48,9 @@ public class ProductServiceImplTest {
 
     @Mock
     private VendorRepository vendorRepository;
+
+    @Mock
+    private MediaStorage mediaStorage;
 
     @Mock
     private BatchRepository batchRepository;
@@ -110,7 +116,6 @@ public class ProductServiceImplTest {
         productUpdateDTORequest.setDescription("Fresh espresso with steamed milk");
     }
 
-
     @Test
     void shouldSaveProductWithOwnNameAndDescription_WhenDataIsValid() {
 
@@ -149,7 +154,7 @@ public class ProductServiceImplTest {
 
     @Test
     void shouldSaveProductWithoutDescription_WhenDescriptionIsMissing() {
-        // Arrange
+
         productDTORequest.setName("Latte");
         productDTORequest.setDescription(null);
 
@@ -168,10 +173,8 @@ public class ProductServiceImplTest {
         when(productRepository.save(product)).thenReturn(savedProduct);
         when(productMapper.toDTO(savedProduct)).thenReturn(productDTOResponse);
 
-        // Act
         ProductDTOResponse result = productService.save(productDTORequest);
 
-        // Assert
         assertNotNull(result);
         assertEquals("Latte", result.getName());
         assertNull(result.getDescription());
@@ -181,7 +184,6 @@ public class ProductServiceImplTest {
 
     @Test
     void shouldReturnResponseDtoWithProductOwnFields_WhenMapping() {
-        // Arrange
         Product entityProduct = new Product();
         entityProduct.setId(productId);
         entityProduct.setName("Actual Product Name");
@@ -198,10 +200,8 @@ public class ProductServiceImplTest {
 
         when(productMapper.toDTO(entityProduct)).thenReturn(responseDto);
 
-        // Act
         ProductDTOResponse result = productMapper.toDTO(entityProduct);
 
-        // Assert
         assertNotNull(result);
         assertEquals("Actual Product Name", result.getName());
         assertEquals("Actual Product Description", result.getDescription());
@@ -404,6 +404,7 @@ public class ProductServiceImplTest {
         verify(productRepository).save(savedProduct);
         verify(productMapper).toDTO(savedProduct);
     }
+
     @Test
     void updateProduct_shouldThrowResourceNotFoundException_whenIdIsUnknown() {
         when(productRepository.findById(999L)).thenReturn(Optional.empty());
@@ -414,6 +415,7 @@ public class ProductServiceImplTest {
         verify(productRepository, never()).save(any(Product.class));
         verifyNoInteractions(productMapper);
     }
+
     @Test
     void updateProduct_shouldKeepNameUnchanged_whenNameIsAbsent() {
         productUpdateDTORequest.setName(null);
@@ -467,7 +469,6 @@ public class ProductServiceImplTest {
 
     @Test
     void updateProduct_shouldKeepDescriptionUnchanged_whenDescriptionIsAbsent() {
-        // Arrange
         productUpdateDTORequest.setName("New Latte Name");
         productUpdateDTORequest.setDescription(null);
 
@@ -481,7 +482,6 @@ public class ProductServiceImplTest {
         when(productRepository.save(any(Product.class))).thenReturn(savedProduct);
         when(productMapper.toDTO(savedProduct)).thenReturn(productDTOResponse);
 
-        // Act
         ProductDTOResponse result = productService.updateProduct(productId, productUpdateDTORequest);
 
         assertNotNull(result);
@@ -498,7 +498,6 @@ public class ProductServiceImplTest {
 
     @Test
     void updateProduct_shouldThrowResourceNotFoundException_whenDescriptionIsPresentButBlank() {
-        // Arrange
         productUpdateDTORequest.setName("Valid Name");
         productUpdateDTORequest.setDescription("   ");
 
@@ -517,4 +516,167 @@ public class ProductServiceImplTest {
         verifyNoInteractions(productMapper);
     }
 
+    @Test
+    void uploadProductImage_success_withOldImage_returnsProductDTOResponse() {
+        Long productId = 1L;
+        MultipartFile mockFile = mock(MultipartFile.class);
+
+        Product product = new Product();
+        product.setId(productId);
+        product.setImageUrl("old-image-url.jpg");
+
+        Product savedProduct = new Product();
+        savedProduct.setId(productId);
+        savedProduct.setImageUrl("new-image-url.jpg");
+
+        ProductDTOResponse expectedResponse = new ProductDTOResponse();
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(mediaStorage.storeProductImage(mockFile)).thenReturn("new-image-url.jpg");
+        when(productRepository.saveAndFlush(product)).thenReturn(savedProduct);
+        when(productMapper.toDTO(savedProduct)).thenReturn(expectedResponse);
+
+        org.springframework.transaction.support.TransactionSynchronizationManager.initSynchronization();
+
+        try {
+            ProductDTOResponse actualResponse = productService.uploadProductImage(productId, mockFile);
+
+            assertNotNull(actualResponse);
+            assertEquals(expectedResponse, actualResponse);
+            assertEquals("new-image-url.jpg", product.getImageUrl());
+
+            verify(mediaStorage, never()).deleteProductImage("new-image-url.jpg");
+        } finally {
+
+            org.springframework.transaction.support.TransactionSynchronizationManager.clear();
+        }
+    }
+
+
+
+    @Test
+    void uploadProductImage_success_noOldImage_doesNotDeleteAnything() {
+        Long productId = 1L;
+        MultipartFile mockFile = mock(MultipartFile.class);
+
+        Product product = new Product();
+        product.setId(productId);
+        product.setImageUrl(null);
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(mediaStorage.storeProductImage(mockFile)).thenReturn("new-image-url.jpg");
+        when(productRepository.saveAndFlush(product)).thenThrow(new RuntimeException("Database error"));
+
+        assertThrows(RuntimeException.class, () -> {
+            productService.uploadProductImage(productId, mockFile);
+        });
+
+        verify(mediaStorage, times(1)).deleteProductImage("new-image-url.jpg");
+
+        verify(mediaStorage, never()).deleteProductImage(null);
+    }
+
+
+    @Test
+    void uploadProductImage_productNotFound_throwsResourceNotFoundException() {
+        Long productId = 1L;
+        MultipartFile mockFile = mock(MultipartFile.class);
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+                productService.uploadProductImage(productId, mockFile)
+        );
+
+        assertEquals("Product was not found", exception.getMessage());
+        verifyNoInteractions(mediaStorage);
+        verify(productRepository, never()).save(any());
+    }
+
+    @Test
+    void uploadProductImage_repositorySaveFails_deletesNewImageAndReThrows() {
+        Long productId = 1L;
+        MultipartFile mockFile = mock(MultipartFile.class);
+
+        Product product = new Product();
+        product.setId(productId);
+        product.setImageUrl("old-image-url.jpg");
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(mediaStorage.storeProductImage(mockFile)).thenReturn("new-image-url.jpg");
+        when(productRepository.saveAndFlush(product)).thenThrow(new RuntimeException("Database error"));
+
+
+        assertThrows(RuntimeException.class, () ->
+                productService.uploadProductImage(productId, mockFile)
+        );
+
+        verify(mediaStorage, times(1)).deleteProductImage("new-image-url.jpg");
+        verify(mediaStorage, never()).deleteProductImage("old-image-url.jpg");
+    }
+
+    // TESTS FOR deleteProductImage
+    // ==========================================
+
+    @Test
+    void deleteProductImage_success_withExistingImage() {
+        Long productId = 1L;
+
+        Product product = new Product();
+        product.setId(productId);
+        product.setImageUrl("old-image-url.jpg");
+
+        Product savedProduct = new Product();
+        savedProduct.setId(productId);
+        savedProduct.setImageUrl(null);
+
+        ProductDTOResponse expectedResponse = new ProductDTOResponse();
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(productRepository.save(product)).thenReturn(savedProduct);
+        when(productMapper.toDTO(savedProduct)).thenReturn(expectedResponse);
+
+        TransactionSynchronizationManager.initSynchronization();
+
+        try {
+            ProductDTOResponse actualResponse = productService.deleteProductImage(productId);
+
+            assertNotNull(actualResponse);
+            assertEquals(expectedResponse, actualResponse);
+            assertNull(product.getImageUrl());
+
+        } finally {
+            TransactionSynchronizationManager.clear();
+        }
+    }
+
+
+    @Test
+    void deleteProductImage_success_noImage_doesNotDeleteFile() {
+        Long productId = 1L;
+        Product product = new Product();
+        product.setId(productId);
+        product.setImageUrl(null);
+
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(productRepository.save(product)).thenReturn(product);
+
+        productService.deleteProductImage(productId);
+
+        assertNull(product.getImageUrl());
+        verify(mediaStorage, never()).deleteProductImage(anyString());
+    }
+
+    @Test
+    void deleteProductImage_productNotFound_throwsResourceNotFoundException() {
+        Long productId = 1L;
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () ->
+                productService.deleteProductImage(productId)
+        );
+
+        verifyNoInteractions(mediaStorage);
+        verify(productRepository, never()).save(any());
+    }
 }
+

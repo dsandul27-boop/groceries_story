@@ -49,6 +49,7 @@ public class ProductMapper {
         productDTOResponse.setPrice(product.getPrice());
         productDTOResponse.setStatus(product.getActiveStatus());
         productDTOResponse.setCreatedAt(product.getCreatedAt());
+        productDTOResponse.setImageUrl(product.getImageUrl());
         return productDTOResponse;
     }
 
@@ -67,6 +68,8 @@ public class ProductMapper {
 
         productFilter.setProductTypeFilterDTOResponse(productTypeFilterDTOResponse);
         productFilter.setVendorFilterDTOResponse(vendorFilterDTOResponse);
+
+        productFilter.setImageUrl(product.getImageUrl());
 
         return productFilter;
     }

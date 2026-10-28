@@ -11,11 +11,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -26,6 +30,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,6 +47,15 @@ public class ProductControllerTest {
 
     @MockitoBean
     private JwtUtil jwtUtil;
+
+    private MockMultipartFile createImage() {
+        return new MockMultipartFile(
+                "file",
+                "milk.png",
+                MediaType.IMAGE_PNG_VALUE,
+                new byte[]{1, 2, 3}
+        );
+    }
 
     ProductDTORequest productDTORequest = new ProductDTORequest();
     ProductDTOResponse productDTOResponse = new ProductDTOResponse();
@@ -192,7 +206,6 @@ public class ProductControllerTest {
     @Test
     @WithMockUser(roles = "STAFF")
     void softDelete_shouldReturn204NoContentAsStaff() throws Exception {
-        // Fix 2: Renamed test method to perfectly match the 204 status check
         doNothing().when(productService).softDelete(productId);
 
         mockMvc.perform(delete("/product/soft-delete/1").with(csrf()))
@@ -264,7 +277,6 @@ public class ProductControllerTest {
     }
 
 
-
     @Test
     @WithMockUser(roles = {"CUSTOMER"})
     void update_shouldReturn403_whenUserIsCustomer() throws Exception {
@@ -279,6 +291,109 @@ public class ProductControllerTest {
                                         """)
                 )
                 .andExpect(status().isForbidden());
+        verifyNoInteractions(productService);
+    }
+
+    //TEST FOR IMAGE UPLOAD AND DELETE
+
+    @Test
+    @WithMockUser(roles = {"STAFF"})
+    void uploadProductImage_authorized_returns200() throws Exception {
+        MockMultipartFile file = createImage();
+
+
+        when(productService.uploadProductImage(any(Long.class), any(MultipartFile.class)))
+                .thenReturn(new ProductDTOResponse());
+
+        mockMvc.perform(multipart("/product/upload-product-image/{productId}", 1L)
+                        .file(file)
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        verify(productService, times(1)).uploadProductImage(any(Long.class), any(MultipartFile.class));
+    }
+
+    @Test
+    @WithMockUser(roles = {"CUSTOMER"})
+    void uploadProductImage_forbiddenForCustomer_returns403() throws Exception {
+        MockMultipartFile file = createImage();
+
+        mockMvc.perform(multipart("/product/upload-product-image/{productId}", 1L)
+                        .file(file)
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(productService);
+    }
+
+    @Test
+    @WithMockUser(roles = {"STAFF"})
+    void uploadProductImage_badContentType_returns400() throws Exception {
+        MockMultipartFile invalidFile = new MockMultipartFile(
+                "file", "test.txt", "text/plain", "invalid data".getBytes()
+        );
+
+
+        when(productService.uploadProductImage(any(Long.class), any(MultipartFile.class)))
+                .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid image format"));
+
+        mockMvc.perform(multipart("/product/upload-product-image/{productId}", 1L)
+                        .file(invalidFile)
+                        .with(csrf()))
+                .andExpect(status().isBadRequest()); // Acum va primi 400
+    }
+
+
+
+    @Test
+    @WithMockUser(roles = {"STAFF"})
+    void deleteProductImage_asStaff_returns200() throws Exception {
+        when(productService.deleteProductImage(1L))
+                .thenReturn(productDTOResponse);
+
+        mockMvc.perform(delete(
+                        "/product/delete-product-image/{productId}", 1L)
+                        .with(user("staff").roles("STAFF"))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        verify(productService).deleteProductImage(1L);
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    void deleteProductImage_asAdmin_returns200() throws Exception {
+        when(productService.deleteProductImage(1L))
+                .thenReturn(productDTOResponse);
+
+        mockMvc.perform(delete(
+                        "/product/delete-product-image/{productId}", 1L)
+                        .with(user("admin").roles("ADMIN"))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        verify(productService).deleteProductImage(1L);
+    }
+
+    @Test
+    @WithMockUser(roles = {"CUSTOMER"})
+    void deleteProductImage_asCustomer_returns403() throws Exception {
+        mockMvc.perform(delete(
+                        "/product/delete-product-image/{productId}", 1L)
+                        .with(user("customer").roles("CUSTOMER"))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(productService);
+    }
+
+    @Test
+    void deleteProductImage_unauthenticated_returns401() throws Exception {
+        mockMvc.perform(delete(
+                        "/product/delete-product-image/{productId}", 1L)
+                        .with(csrf()))
+                .andExpect(status().isUnauthorized());
+
         verifyNoInteractions(productService);
     }
 }

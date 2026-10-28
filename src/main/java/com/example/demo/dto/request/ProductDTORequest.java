@@ -31,4 +31,5 @@ public class ProductDTORequest {
     @NotNull(message = "Missing field price")
     @Positive(message = "Price must be greater than 0")
     private BigDecimal price;
+
 }

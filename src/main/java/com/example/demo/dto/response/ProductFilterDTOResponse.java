@@ -26,4 +26,6 @@ public class ProductFilterDTOResponse {
     private ActiveStatus status;
 
     private Instant createdAt;
+
+    private String imageUrl;
 }

@@ -29,4 +29,5 @@ public class ProductDTOResponse {
 
     private Long quantity;
 
+    private String imageUrl;
 }

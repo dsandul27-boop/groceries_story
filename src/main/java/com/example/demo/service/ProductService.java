@@ -4,6 +4,7 @@ import com.example.demo.dto.request.ProductDTORequest;
 import com.example.demo.dto.request.ProductUpdateDTORequest;
 import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.dto.response.ProductFilterDTOResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import java.util.List;
@@ -23,5 +24,9 @@ public interface ProductService {
     List<ProductFilterDTOResponse> getProductFilter();
 
     ProductDTOResponse updateProduct(Long productId, ProductUpdateDTORequest updateDTORequest);
+
+    ProductDTOResponse uploadProductImage(Long productId, MultipartFile file);
+
+    ProductDTOResponse deleteProductImage(Long productId);
 
 }
