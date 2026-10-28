@@ -14,7 +14,7 @@ public class MediaWebConfig implements WebMvcConfigurer {
     private final Path mediaDirectory;
 
     public MediaWebConfig(
-            @Value("${app.media.dir}") String mediaDirectory) {
+            @Value("${app.media.dir:${user.home}/.groceries/media}") String mediaDirectory) {
         this.mediaDirectory = Path.of(mediaDirectory)
                 .toAbsolutePath()
                 .normalize();

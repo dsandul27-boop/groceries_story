@@ -25,7 +25,7 @@ public class LocalMediaStorage implements MediaStorage {
     private final long maxFileSize;
 
     public LocalMediaStorage(
-            @Value("${app.media.dir}") String mediaDirectory,
+            @Value("${app.media.dir:${user.home}/.groceries/media}") String mediaDirectory,
             @Value("${app.upload.max-size:2097152}") long maxFileSize) {
 
         this.mediaDirectory = Path.of(mediaDirectory)
