@@ -1,13 +1,19 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.request.ProductDTORequest;
+import com.example.demo.dto.request.ProductFilterCriteria;
 import com.example.demo.dto.request.ProductUpdateDTORequest;
+import com.example.demo.dto.response.PageResponse;
 import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.dto.response.ProductFilterDTOResponse;
 import com.example.demo.service.impl.ProductServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +33,7 @@ public class ProductController {
     public ProductController(ProductServiceImpl productService) {
         this.productService = productService;
     }
+    private static final int MAX_PAGE_SIZE = 100;
 
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     @PostMapping("/save-product")
@@ -69,11 +76,18 @@ public class ProductController {
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 
-    @PreAuthorize("hasAnyRole('CUSTOMER' , 'ADMIN', 'STAFF')")
+
+    @PreAuthorize("permitAll()")  // catalog reads are public
     @GetMapping("/get-product-filter")
-    public List<ProductFilterDTOResponse> getProductFilter() {
-        List<ProductFilterDTOResponse> productFilterDTOResponseList = productService.getProductFilter();
-        return productFilterDTOResponseList;
+    public ResponseEntity<PageResponse<ProductFilterDTOResponse>> getProductFilter(
+            @Valid @ParameterObject ProductFilterCriteria criteria,
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
+
+        Pageable resolved = pageable.getPageSize() > MAX_PAGE_SIZE
+                ? PageRequest.of(pageable.getPageNumber(), MAX_PAGE_SIZE, pageable.getSort())
+                : pageable;
+
+        return ResponseEntity.ok(productService.getProductFilter(criteria, resolved));
     }
 
 

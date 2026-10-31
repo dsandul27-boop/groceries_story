@@ -20,7 +20,6 @@ public class MediaWebConfig implements WebMvcConfigurer {
                 .normalize();
     }
 
-
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 

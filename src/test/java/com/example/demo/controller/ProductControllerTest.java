@@ -2,8 +2,12 @@ package com.example.demo.controller;
 
 import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.request.ProductDTORequest;
+import com.example.demo.dto.request.ProductFilterCriteria;
 import com.example.demo.dto.request.ProductUpdateDTORequest;
+import com.example.demo.dto.response.PageResponse;
 import com.example.demo.dto.response.ProductDTOResponse;
+import com.example.demo.dto.response.ProductFilterDTOResponse;
+import com.example.demo.dto.response.RefDTO;
 import com.example.demo.entities.ActiveStatus;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.service.impl.ProductServiceImpl;
@@ -11,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -395,5 +400,54 @@ public class ProductControllerTest {
                 .andExpect(status().isUnauthorized());
 
         verifyNoInteractions(productService);
+    }
+
+    @Test
+    void givenValidParams_whenGetProductFilter_thenReturn200AndFlattenedJsonStructure() throws Exception {
+        ProductFilterDTOResponse dto = new ProductFilterDTOResponse();
+        dto.setId(10L);
+        dto.setName("Ulei de Floarea Soarelui");
+        dto.setDescription("Ulei presat la rece 1L");
+        dto.setPrice(BigDecimal.valueOf(11.50));
+        dto.setStatus(ActiveStatus.ACTIVE);
+        dto.setAvailableQuantity(85L);
+        dto.setProductType(new RefDTO(2L, "Uleiuri"));
+        dto.setVendor(new RefDTO(3L, "Floriol"));
+        dto.setImageUrl("http://image.url");
+
+        PageResponse<ProductFilterDTOResponse> pageResponse = new PageResponse<>();
+        pageResponse.setContent(List.of(dto));
+        pageResponse.setTotalElements(1);
+
+        when(productService.getProductFilter(any(ProductFilterCriteria.class), any(Pageable.class)))
+                .thenReturn(pageResponse);
+
+        mockMvc.perform(get("/product/get-product-filter")
+                        .param("categoryId", "1")
+                        .param("minPrice", "5.00")
+                        .param("maxPrice", "15.00")
+                        .param("activeOnly", "true")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(10))
+                .andExpect(jsonPath("$.content[0].name").value("Ulei de Floarea Soarelui"))
+                .andExpect(jsonPath("$.content[0].description").value("Ulei presat la rece 1L"))
+                .andExpect(jsonPath("$.content[0].price").value(11.50))
+                .andExpect(jsonPath("$.content[0].status").value("ACTIVE"))
+                .andExpect(jsonPath("$.content[0].availableQuantity").value(85))
+                .andExpect(jsonPath("$.content[0].productType.id").value(2))
+                .andExpect(jsonPath("$.content[0].productType.name").value("Uleiuri"))
+                .andExpect(jsonPath("$.content[0].vendor.id").value(3))
+                .andExpect(jsonPath("$.content[0].vendor.name").value("Floriol"))
+                .andExpect(jsonPath("$.content[0].imageUrl").value("http://image.url"));
+    }
+
+    @Test
+    void givenInvertedPriceRange_whenGetProductFilter_thenReturn400BadRequest() throws Exception {
+        mockMvc.perform(get("/product/get-product-filter")
+                        .param("minPrice", "15.00")
+                        .param("maxPrice", "5.00") // min > max -> 400!
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 }

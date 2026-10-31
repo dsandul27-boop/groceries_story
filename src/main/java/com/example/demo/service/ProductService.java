@@ -1,9 +1,12 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.request.ProductDTORequest;
+import com.example.demo.dto.request.ProductFilterCriteria;
 import com.example.demo.dto.request.ProductUpdateDTORequest;
+import com.example.demo.dto.response.PageResponse;
 import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.dto.response.ProductFilterDTOResponse;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -21,7 +24,8 @@ public interface ProductService {
 
     void softDelete(Long productDTOId);
 
-    List<ProductFilterDTOResponse> getProductFilter();
+    PageResponse<ProductFilterDTOResponse> getProductFilter(
+            ProductFilterCriteria criteria, Pageable pageable);
 
     ProductDTOResponse updateProduct(Long productId, ProductUpdateDTORequest updateDTORequest);
 

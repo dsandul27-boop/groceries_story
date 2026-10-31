@@ -1,10 +1,7 @@
 package com.example.demo.mapper;
 
 import com.example.demo.dto.request.ProductDTORequest;
-import com.example.demo.dto.response.ProductDTOResponse;
-import com.example.demo.dto.response.ProductFilterDTOResponse;
-import com.example.demo.dto.response.ProductTypeFilterDTOResponse;
-import com.example.demo.dto.response.VendorFilterDTOResponse;
+import com.example.demo.dto.response.*;
 import com.example.demo.entities.Product;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.ProductTypeRepository;
@@ -53,24 +50,19 @@ public class ProductMapper {
         return productDTOResponse;
     }
 
-    public ProductFilterDTOResponse toFilterDTO(Product product) {
-        ProductFilterDTOResponse productFilter = new ProductFilterDTOResponse();
-
-        productFilter.setId(product.getId());
-        productFilter.setName(product.getName());
-        productFilter.setDescription(product.getDescription());
-        productFilter.setPrice(product.getPrice());
-        productFilter.setStatus(product.getActiveStatus());
-        productFilter.setCreatedAt(product.getCreatedAt());
-
-        ProductTypeFilterDTOResponse productTypeFilterDTOResponse = productTypeMapper.toFilterDTO(product.getProductType());
-        VendorFilterDTOResponse vendorFilterDTOResponse = vendorMapper.toFilerDTO((product.getVendor()));
-
-        productFilter.setProductTypeFilterDTOResponse(productTypeFilterDTOResponse);
-        productFilter.setVendorFilterDTOResponse(vendorFilterDTOResponse);
-
-        productFilter.setImageUrl(product.getImageUrl());
-
-        return productFilter;
+    public ProductFilterDTOResponse toFilterDTO(Product product, Long availableQuantity) {
+        ProductFilterDTOResponse dto = new ProductFilterDTOResponse();
+        dto.setId(product.getId());
+        dto.setName(product.getName());
+        dto.setDescription(product.getDescription());
+        dto.setPrice(product.getPrice());
+        dto.setStatus(product.getActiveStatus());
+        dto.setAvailableQuantity(availableQuantity);
+        dto.setImageUrl(product.getImageUrl());
+        dto.setProductType(new RefDTO(
+                product.getProductType().getId(), product.getProductType().getName()));
+        dto.setVendor(new RefDTO(
+                product.getVendor().getId(), product.getVendor().getName()));
+        return dto;
     }
 }
