@@ -2,6 +2,7 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.dto.request.ProductDTORequest;
+import com.example.demo.dto.request.ProductFilterCriteria;
 import com.example.demo.dto.request.ProductUpdateDTORequest;
 import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.dto.response.ProductFilterDTOResponse;
@@ -12,7 +13,13 @@ import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.exception.NotBlankException;
 import com.example.demo.mapper.ProductMapper;
 import com.example.demo.media.MediaStorage;
+import com.example.demo.dto.response.PageResponse;
+import com.example.demo.repository.spec.ProductSpecification;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.slf4j.Logger;
@@ -27,7 +34,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -59,6 +68,9 @@ public class ProductServiceImpl implements ProductService {
         this.userRepository = userRepository;
         this.mediaStorage = mediaStorage;
     }
+
+    private static final Sort DEFAULT_SORT =
+            Sort.by("activeStatus").ascending().and(Sort.by("name").ascending());
 
     @Override
     public ProductDTOResponse save(ProductDTORequest productDTORequest) {
@@ -157,20 +169,29 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductFilterDTOResponse> getProductFilter() {
-        List<ProductFilterDTOResponse> productFilterList = new ArrayList<>();
-        List<Product> productList = productRepository.findAll();
+    public PageResponse<ProductFilterDTOResponse> getProductFilter(ProductFilterCriteria criteria, Pageable pageable) {
+        Pageable effective = pageable.getSort().isSorted()
+                ? pageable
+                : PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), DEFAULT_SORT);
 
-        if (productList.isEmpty()) {
-            throw new ResourceNotFoundException("Product list is empty");
-        }
+        Page<Product> page = productRepository.findAll(ProductSpecification.matching(criteria), effective);
 
-        for (Product product : productList) {
-            productFilterList.add(productMapper.toFilterDTO(product));
-        }
 
-        return productFilterList;
+        List<Long> ids = page.getContent().stream().map(Product::getId).toList();
+        Map<Long, Long> qtyByProduct = ids.isEmpty() ? Map.of()
+                : batchRepository.sumActiveQuantityByProductIds(ids).stream()
+                .collect(Collectors.toMap(
+                        BatchRepository.ProductQuantityView::getProductId, BatchRepository.ProductQuantityView::getQty));
+
+        List<ProductFilterDTOResponse> content = page.getContent().stream()
+                .map(p -> productMapper.toFilterDTO(
+                        p, qtyByProduct.getOrDefault(p.getId(), 0L)))
+                .toList();
+
+        return PageResponse.fromPage(page, content);
+
     }
+
 
     @Override
     public ProductDTOResponse updateProduct(
@@ -262,6 +283,4 @@ public class ProductServiceImpl implements ProductService {
                 }
         );
     }
-
-
 }

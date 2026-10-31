@@ -5,27 +5,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 
 @Data
 @NoArgsConstructor
 public class ProductFilterDTOResponse {
 
     private Long id;
-
     private String name;
-
     private String description;
-
-    private ProductTypeFilterDTOResponse productTypeFilterDTOResponse;
-
-    private VendorFilterDTOResponse vendorFilterDTOResponse;
-
     private BigDecimal price;
-
     private ActiveStatus status;
-
-    private Instant createdAt;
-
+    private Long availableQuantity;
+    private RefDTO productType;   // { id, name }
+    private RefDTO vendor;        // { id, name }
     private String imageUrl;
 }

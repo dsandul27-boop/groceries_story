@@ -1,7 +1,9 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.request.ProductDTORequest;
+import com.example.demo.dto.request.ProductFilterCriteria;
 import com.example.demo.dto.request.ProductUpdateDTORequest;
+import com.example.demo.dto.response.PageResponse;
 import com.example.demo.dto.response.ProductDTOResponse;
 import com.example.demo.dto.response.ProductFilterDTOResponse;
 import com.example.demo.entities.ActiveStatus;
@@ -19,6 +21,11 @@ import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.ProductTypeRepository;
 import com.example.demo.repository.VendorRepository;
 import com.example.demo.service.impl.ProductServiceImpl;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,9 +38,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -249,25 +258,7 @@ public class ProductServiceImplTest {
         verify(productMapper).toDTO(activeProd);
     }
 
-    @Test
-    void getProductFilter_shouldReturnProducts_AC3() {
-        Product activeProd = new Product();
-        activeProd.setId(1L);
-        activeProd.setActiveStatus(ActiveStatus.ACTIVE);
 
-        Product inactiveProd = new Product();
-        inactiveProd.setId(2L);
-        inactiveProd.setActiveStatus(ActiveStatus.INACTIVE);
-
-        when(productRepository.findAll()).thenReturn(List.of(activeProd, inactiveProd));
-        when(productMapper.toFilterDTO(activeProd)).thenReturn(new ProductFilterDTOResponse());
-        when(productMapper.toFilterDTO(inactiveProd)).thenReturn(new ProductFilterDTOResponse());
-        List<ProductFilterDTOResponse> result = productService.getProductFilter();
-
-        assertEquals(2, result.size());
-        verify(productMapper).toFilterDTO(inactiveProd);
-        verify(productMapper).toFilterDTO(activeProd);
-    }
 
     @Test
     void getAll_shouldThrowResourceNotFoundException_whenNoProductsExist() {
@@ -677,6 +668,53 @@ public class ProductServiceImplTest {
 
         verifyNoInteractions(mediaStorage);
         verify(productRepository, never()).save(any());
+    }
+
+    @Test
+    void givenEmptyPage_whenGetProductFilter_thenReturn200WithEmptyContentNoException() {
+        ProductFilterCriteria criteria = new ProductFilterCriteria();
+        Pageable pageable = PageRequest.of(0, 20);
+
+        when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.emptyList(), pageable, 0));
+
+        PageResponse<ProductFilterDTOResponse> response = productService.getProductFilter(criteria, pageable);
+
+        assertThat(response.getContent()).isEmpty();
+        assertThat(response.getTotalElements()).isZero();
+        verifyNoInteractions(batchRepository);
+    }
+
+    @Test
+    void givenProductsExist_whenGetProductFilter_thenAggregateOnlyActiveBatchesCorrectly() {
+        ProductFilterCriteria criteria = new ProductFilterCriteria();
+        Pageable pageable = PageRequest.of(0, 20);
+
+        Product product = new Product();
+        product.setId(5L);
+        product.setName("Pâine Toast");
+
+        Page<Product> productPage = new PageImpl<>(List.of(product), pageable, 1);
+        when(productRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(productPage);
+
+        BatchRepository.ProductQuantityView qtyView = mock(BatchRepository.ProductQuantityView.class);
+        when(qtyView.getProductId()).thenReturn(5L);
+        when(qtyView.getQty()).thenReturn(120L); // 120 de pâini în loturile active (nepirate)
+
+        when(batchRepository.sumActiveQuantityByProductIds(List.of(5L)))
+                .thenReturn(List.of(qtyView));
+
+        ProductFilterDTOResponse dto = new ProductFilterDTOResponse();
+        dto.setId(5L);
+        dto.setAvailableQuantity(120L);
+
+        when(productMapper.toFilterDTO(eq(product), eq(120L))).thenReturn(dto);
+
+        PageResponse<ProductFilterDTOResponse> response = productService.getProductFilter(criteria, pageable);
+
+        assertThat(response.getContent()).hasSize(1);
+        assertThat(response.getContent().get(0).getAvailableQuantity()).isEqualTo(120L);
     }
 }
 

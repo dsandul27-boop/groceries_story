@@ -30,9 +30,11 @@ public class ProductMapperTest {
     private Instant createdAt;
     private VendorMapper vendorMapper;
     private ProductTypeMapper productTypeMapper;
+    private Long availableQuantity;
 
     @BeforeEach
     void setUp() {
+        availableQuantity = 1L;
         vendorMapper = new VendorMapper();
         productTypeMapper = new ProductTypeMapper();
         productMapper = new ProductMapper(
@@ -103,7 +105,7 @@ public class ProductMapperTest {
 
     @Test
     void toFilterProductDTOResponse_shouldMapFilterDTORequestToProduct() {
-        ProductFilterDTOResponse result = productMapper.toFilterDTO(product);
+        ProductFilterDTOResponse result = productMapper.toFilterDTO(product, availableQuantity);
 
 
         assertEquals("Milk", result.getName());
@@ -111,11 +113,11 @@ public class ProductMapperTest {
         assertEquals(new BigDecimal("10"), result.getPrice());
         assertEquals(ActiveStatus.ACTIVE, result.getStatus());
 
-        assertEquals(5L, result.getVendorFilterDTOResponse().getId());
-        assertEquals("Latti", result.getVendorFilterDTOResponse().getName());
+        assertEquals(5L, result.getVendor().getId());
+        assertEquals("Latti", result.getVendor().getName());
 
-        assertEquals(7L, result.getProductTypeFilterDTOResponse().getId());
-        assertEquals("Dairy Subcategory", result.getProductTypeFilterDTOResponse().getName());
+        assertEquals(7L, result.getProductType().getId());
+        assertEquals("Dairy Subcategory", result.getProductType().getName());
         assertEquals("https://example.com", result.getImageUrl());
 
         assertNotEquals(product.getProductType().getName(), result.getName());
